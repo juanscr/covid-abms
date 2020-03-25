@@ -6,6 +6,7 @@ turtles-own
     muerto?                    ;; Si se muere o no el agente
     duración-contagio          ;; Tiempo que conserva el virus dentro del agente
     edad                       ;; Años de la persona
+    familiares                 ;; Lista de familiares
 ]
 
 patches-own[
@@ -22,9 +23,12 @@ globals
     muertos              ;; Número de muertos total
     dia_previo           ;; Número de contagiados ayer
     dia_actual           ;; Número de contagiados hoy
-    imagen-tortuga
+    imagen-tortuga       ;; Figura para la tortuga
     probs_muerte         ;; Probabilidades de muerte
     edades               ;; Rango de edades
+    contar_dia           ;; Contar 24 ticks
+    probs_familia        ;; Proporción del número de personas por familia
+    numero_familia       ;; Numero de personas por familia
 ]
 
 ;; El setup de cada una de las variables
@@ -32,8 +36,13 @@ to setup
   clear-all
   ;; Inicializar variables
   set muertos 0
-  set probs_muerte (list 0 0.2 95 0.2 0.4 1.3 3.6 8 14.8) ;; 0.2
+  set dia_previo 0
+  set muertos_previo 0
+  set contar_dia 0
+  set probs_muerte (list 0 0.2 0.2 0.2 0.4 1.3 3.6 8 14.8)
   set edades (list (list 0 9) (list 10 19) (list 20 29) (list 30 39) (list 40 49) (list 50 59) (list 60 69) (list 70 79) (list 80 121))
+  set probs_familia (list 19 23 24 19 8 6)
+  set numero_familia (list 1 2 3 4 5 6)
 
   ;; Creación de la simulación
   setup-tortugas
@@ -54,8 +63,10 @@ to setup-tortugas
     set muerto? false
     set contagiado? false
     set tiempo-contagiado 0
+    set familiares (list self)
     obtener-edad
   ]
+  crear-familias
   ask n-of init-infectados turtles [ contagiarse ]
 end
 
@@ -83,6 +94,58 @@ to obtener-edad
   set size (4 * (edad0 + 1) / 121)
 end
 
+;; Crear familias de tortuga
+to crear-familias
+  ;; Asignar familia a los niños
+  ask turtles with [ edad < 18 ] [
+    if length familiares <= 1 [
+      ;; Probabilidad condicional
+      let probs_niños []
+      let total (sum (sublist probs_familia 1 (length probs_familia)))
+      let indice 1
+      while [ indice < length probs_familia - 1 ] [
+        set probs_niños (insert-item (length probs_niños) probs_niños ((item indice probs_familia) * 100 / total))
+        set (indice) (indice + 1)
+      ]
+      set probs_niños (insert-item (length probs_niños) probs_niños (100 - (sum probs_niños)))
+
+      ;; Ver cuantas personas hay en la familia de la tortuga
+      set indice 0
+      let acum 0
+      let num 0
+      let eleccion random-float 100
+      while [indice < length probs_niños] [
+        let elem (item indice probs_niños)
+        set acum (acum + elem)
+        if eleccion < acum [
+          set num ((item indice numero_familia) - 2)
+          set indice (length probs_familia)
+        ]
+        set indice (indice + 1)
+      ]
+
+      ;; Seleccionar familiares
+      let adulto (one-of other turtles with [ edad >= 18 and length familiares <= 1 ])
+      set familiares (insert-item (length familiares) familiares adulto)
+      if num > 0 [
+        let opciones (list other turtles with [ length familiares <= 1 ])
+        let resto-famila (list n-of (min (list num (length opciones))) opciones)
+        set indice 0
+        while [ indice < length opciones ] [
+          set familiares (insert-item (length familiares) familiares (item indice opciones))
+          set indice (indice + 1)
+        ]
+      ]
+
+      ;; Seleccionar familiares para los que ya se hicieron
+      let familiares_aux familiares
+      foreach familiares [
+        set familiares familiares_aux
+      ]
+    ]
+  ]
+end
+
 ;; Creación de patches
 to setup-parches
   ask patches [
@@ -98,14 +161,19 @@ to actualizar-variables-global
     set %infectados (count turtles with [ contagiado? ] / count turtles) * 100
     set %inmune (count turtles with [ recuperado? ] / count turtles) * 100
   ]
-  set dia_actual (count turtles with [contagiado?])
-  set muertos_actual muertos
+  if contar_dia = 24 [
+    set dia_actual (count turtles with [contagiado?])
+    set muertos_actual muertos
+    set contar_dia -1
+  ]
 end
 
 ;; Correr la simulación
 to correr
-  set dia_previo (count turtles with [contagiado?])
-  set muertos_previo muertos
+  if contar_dia = 24 [
+    set dia_previo (count turtles with [contagiado?])
+    set muertos_previo muertos
+  ]
 
   ask turtles [
     mover
@@ -117,6 +185,7 @@ to correr
   infectar-persona-patch
   actualizar-variables-global
   actualizar-display
+  set contar_dia (contar_dia + 1)
   tick
 end
 
@@ -141,7 +210,7 @@ end
 
 ;; Infectar personas cerca y patches
 to infectar
-  ask other turtles-here with [ not contagiado? and not recuperado? ]
+  ask other turtles in-radius radio-infección with [ not contagiado? and not recuperado? ]
     [ if random-float 100 < tasa-infección
       [ contagiarse ] ] ;; Contagiar agente cerca
 
@@ -202,7 +271,7 @@ end
 to infectar-persona-patch
   ask patches with [infectado?][
     ask (turtles-on self ) with [ not contagiado? and not recuperado? ][
-      if random-float 100 < tasa-infección [
+      if random-float 100 < probabilidad-patch [
         contagiarse
       ]
     ]
@@ -267,9 +336,9 @@ HORIZONTAL
 
 BUTTON
 35
-250
+305
 105
-285
+340
 NIL
 setup
 NIL
@@ -284,9 +353,9 @@ NIL
 
 BUTTON
 115
-250
+305
 187
-286
+341
 NIL
 correr
 T
@@ -302,8 +371,8 @@ NIL
 PLOT
 410
 540
-820
-820
+785
+775
 Población
 Horas
 Personas
@@ -317,7 +386,7 @@ true
 PENS
 "Contagiado" 1.0 0 -2674135 true "" "plot count turtles with [ contagiado? ]"
 "Recuperado" 1.0 0 -7500403 true "" "plot count turtles with [ recuperado? ]"
-"Saludables" 1.0 0 -10899396 true "" "plot count turtles with [ not contagiado?]"
+"Susceptibles" 1.0 0 -10899396 true "" "plot count turtles with [ not contagiado? and not recuperado? ]"
 "Muertos" 1.0 0 -7858858 true "" "plot muertos"
 
 SLIDER
@@ -329,7 +398,7 @@ tamaño-de-población
 tamaño-de-población
 10
 10000
-1931.0
+2000.0
 1
 1
 NIL
@@ -337,9 +406,9 @@ HORIZONTAL
 
 MONITOR
 40
-325
+380
 130
-370
+425
 NIL
 %infectados
 1
@@ -348,9 +417,9 @@ NIL
 
 MONITOR
 40
-380
+435
 130
-425
+480
 NIL
 %inmune
 1
@@ -359,9 +428,9 @@ NIL
 
 MONITOR
 40
-440
+495
 130
-485
+540
 years
 ticks / 52
 1
@@ -384,11 +453,11 @@ NIL
 HORIZONTAL
 
 PLOT
-840
+805
 540
-1250
-820
-Contagiados
+1180
+775
+Contagiados por dia
 Días
 Población
 0.0
@@ -403,9 +472,9 @@ PENS
 
 SLIDER
 40
-180
+220
 302
-213
+253
 duración-virus-patch
 duración-virus-patch
 1
@@ -418,9 +487,9 @@ HORIZONTAL
 
 BUTTON
 200
-250
+305
 270
-285
+340
 paso
 correr
 NIL
@@ -434,11 +503,11 @@ NIL
 1
 
 PLOT
-1270
+1200
 540
-1680
-820
-Muertos
+1575
+775
+Muertos por día
 Horas
 Personas
 0.0
@@ -450,6 +519,36 @@ false
 "" ""
 PENS
 "default" 1.0 1 -16777216 true "" "plot (max (list (muertos_actual - muertos_previo) 0))"
+
+SLIDER
+40
+20
+235
+53
+probabilidad-patch
+probabilidad-patch
+0
+15
+8.0
+0.5
+1
+NIL
+HORIZONTAL
+
+SLIDER
+40
+180
+212
+213
+radio-infección
+radio-infección
+0
+2
+1.0
+0.1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
