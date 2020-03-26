@@ -128,19 +128,18 @@ to crear-familias
       let adulto (one-of other turtles with [ edad >= 18 and length familiares <= 1 ])
       set familiares (insert-item (length familiares) familiares adulto)
       if num > 0 [
-        let opciones (list other turtles with [ length familiares <= 1 ])
-        let resto-famila (list n-of (min (list num (length opciones))) opciones)
-        set indice 0
-        while [ indice < length opciones ] [
-          set familiares (insert-item (length familiares) familiares (item indice opciones))
-          set indice (indice + 1)
+        let opciones other turtles with [ length familiares <= 1 ]
+        let resto-familia n-of (min (list num (count opciones))) opciones
+        let familiares-aux familiares
+        ask resto-familia [
+          set familiares-aux (insert-item (length familiares-aux) familiares-aux self)
         ]
-      ]
+        set familiares familiares-aux
 
-      ;; Seleccionar familiares para los que ya se hicieron
-      let familiares_aux familiares
-      foreach familiares [
-        set familiares familiares_aux
+        ;; Seleccionar familiares para los que ya se hicieron
+        foreach familiares [
+          set familiares familiares-aux
+        ]
       ]
     ]
   ]
@@ -163,19 +162,20 @@ to crear-familias
 
       ;; Asignar familias
       if num > 0 [
-        let opciones (list other turtles with [ length familiares <= 1 ])
-        let resto-famila (list n-of (min (list num (length opciones))) opciones)
+        let opciones other turtles with [ length familiares <= 1 ]
+        let resto-familia n-of (min (list num (count opciones))) opciones
         set indice 0
-        while [ indice < length opciones ] [
-          set familiares (insert-item (length familiares) familiares (item indice opciones))
-          set indice (indice + 1)
+        let familiares-aux familiares
+        ask resto-familia [
+          set familiares-aux (insert-item (length familiares-aux) familiares-aux self)
         ]
-      ]
+        set familiares familiares-aux
 
-      ;; Seleccionar familiares para los que ya se hicieron
-      let familiares_aux familiares
-      foreach familiares [
-        set familiares familiares_aux
+        ;; Seleccionar familiares para los que ya se hicieron
+        let familiares_aux familiares
+        foreach familiares [
+          set familiares familiares_aux
+        ]
       ]
   ]
 end
