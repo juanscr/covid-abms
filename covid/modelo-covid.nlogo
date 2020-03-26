@@ -103,7 +103,7 @@ to crear-familias
       let probs_niños []
       let total (sum (sublist probs_familia 1 (length probs_familia)))
       let indice 1
-      while [ indice < length probs_familia ] [
+      while [ indice < length probs_familia - 1 ] [
         set probs_niños (insert-item (length probs_niños) probs_niños ((item indice probs_familia) * 100 / total))
         set (indice) (indice + 1)
       ]
