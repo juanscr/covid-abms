@@ -41,7 +41,7 @@ to setup
   set contar_dia 0
   set probs_muerte (list 0 0.2 0.2 0.2 0.4 1.3 3.6 8 14.8)
   set edades (list (list 0 9) (list 10 19) (list 20 29) (list 30 39) (list 40 49) (list 50 59) (list 60 69) (list 70 79) (list 80 121))
-  set probs_familia (list 19 23 24 19 8 6)
+  set probs_familia (list 19 23 24 19 8 7)
   set numero_familia (list 1 2 3 4 5 6)
 
   ;; Creación de la simulación
@@ -103,7 +103,7 @@ to crear-familias
       let probs_niños []
       let total (sum (sublist probs_familia 1 (length probs_familia)))
       let indice 1
-      while [ indice < length probs_familia - 1 ] [
+      while [ indice < length probs_familia ] [
         set probs_niños (insert-item (length probs_niños) probs_niños ((item indice probs_familia) * 100 / total))
         set (indice) (indice + 1)
       ]
@@ -118,7 +118,7 @@ to crear-familias
         let elem (item indice probs_niños)
         set acum (acum + elem)
         if eleccion < acum [
-          set num ((item indice numero_familia) - 2)
+          set num ((item (indice + 1) numero_familia) - 2)
           set indice (length probs_familia)
         ]
         set indice (indice + 1)
@@ -143,6 +143,40 @@ to crear-familias
         set familiares familiares_aux
       ]
     ]
+  ]
+
+  ask turtles with [ length familiares <= 1 ] [
+    ;; Ver cuantas personas hay en la familia de la tortuga
+      let indice 1
+      let acum 0
+      let num 0
+      let eleccion random-float 100
+      while [indice < length probs_familia] [
+        let elem (item indice probs_familia)
+        set acum (acum + elem)
+        if eleccion < acum [
+          set num ((item indice numero_familia) - 1)
+          set indice (length probs_familia)
+        ]
+        set indice (indice + 1)
+      ]
+
+      ;; Asignar familias
+      if num > 0 [
+        let opciones (list other turtles with [ length familiares <= 1 ])
+        let resto-famila (list n-of (min (list num (length opciones))) opciones)
+        set indice 0
+        while [ indice < length opciones ] [
+          set familiares (insert-item (length familiares) familiares (item indice opciones))
+          set indice (indice + 1)
+        ]
+      ]
+
+      ;; Seleccionar familiares para los que ya se hicieron
+      let familiares_aux familiares
+      foreach familiares [
+        set familiares familiares_aux
+      ]
   ]
 end
 
