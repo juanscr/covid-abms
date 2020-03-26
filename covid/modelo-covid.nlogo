@@ -7,6 +7,8 @@ turtles-own
     duración-contagio          ;; Tiempo que conserva el virus dentro del agente
     edad                       ;; Años de la persona
     familiares                 ;; Lista de familiares
+    casax                      ;; Centro de un circulo representando la casa eje x
+    casay                      ;; Centro de un circulo representando la casa eje y
 ]
 
 patches-own[
@@ -29,6 +31,7 @@ globals
     contar_dia           ;; Contar 24 ticks
     probs_familia        ;; Proporción del número de personas por familia
     numero_familia       ;; Numero de personas por familia
+    primera_corrida      ;; Verificar si es la primera vez
 ]
 
 ;; El setup de cada una de las variables
@@ -43,10 +46,11 @@ to setup
   set edades (list (list 0 9) (list 10 19) (list 20 29) (list 30 39) (list 40 49) (list 50 59) (list 60 69) (list 70 79) (list 80 121))
   set probs_familia (list 19 23 24 19 8 7)
   set numero_familia (list 1 2 3 4 5 6)
+  set primera_corrida false
 
   ;; Creación de la simulación
-  setup-tortugas
   setup-parches
+  setup-tortugas
   actualizar-variables-global
   actualizar-display
   reset-ticks
@@ -55,7 +59,6 @@ end
 ;; Creación inicial de tortugas
 to setup-tortugas
   create-turtles tamaño-de-población [
-    setxy random-xcor random-ycor ;; Posición inicial
     set tiempo-contagiado 0
     set recuperado? false
     set shape "dot"
@@ -67,6 +70,7 @@ to setup-tortugas
     obtener-edad
   ]
   crear-familias
+  ir-a-la-casa
   ask n-of init-infectados turtles [ contagiarse ]
 end
 
@@ -91,7 +95,13 @@ to obtener-edad
   set edad edad0
 
   ;; Calcular tamaño
-  set size (4 * (edad0 + 1) / 121)
+  ifelse edad < 20 [
+    set size 2
+  ]
+  [ifelse edad < 60 [
+    set size 3
+  ]
+  [set size 4]]
 end
 
 ;; Crear familias de tortuga
@@ -180,6 +190,42 @@ to crear-familias
   ]
 end
 
+;; Crear casa y mandar las personas a ella
+to ir-a-la-casa
+  let vistos []
+  let centros []
+  let colores 0
+  ask turtles [
+    if not member? self vistos [
+      let centrox random-xcor
+      let centroy random-ycor
+      let indice 0
+      while [ indice < length centros ] [
+        if sqrt((centrox - (item indice centros)) ^ 2 + (centroy - (item (indice + 1) centros)) ^ 2) < 1 [
+          while [ sqrt((centrox - (item indice centros)) ^ 2 + (centroy - (item (indice + 1) centros)) ^ 2) < 1 ] [
+            set centrox random-xcor
+            set centroy random-ycor
+          ]
+        ]
+        set indice (indice + 2)
+      ]
+      set centros (insert-item (length centros) centros centrox)
+      set centros (insert-item (length centros) centros centroy)
+      foreach familiares [
+        set vistos (insert-item (length vistos) vistos self)
+        set casax centrox
+        set casay centroy
+        let posicionx (centrox + (-0.5 + 1 * random-float 1))
+        let posiciony (centroy + (-0.5 + 1 * random-float 1))
+        setxy posicionx posiciony
+        ask patch-here [
+          set pcolor 128
+        ]
+      ]
+    ]
+  ]
+end
+
 ;; Creación de patches
 to setup-parches
   ask patches [
@@ -204,6 +250,12 @@ end
 
 ;; Correr la simulación
 to correr
+  if not primera_corrida [
+    ask patches [
+      set pcolor white
+    ]
+    set primera_corrida true
+  ]
   if contar_dia = 24 [
     set dia_previo (count turtles with [contagiado?])
     set muertos_previo muertos
