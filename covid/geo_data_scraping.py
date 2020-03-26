@@ -10,7 +10,7 @@ with open('excluded.txt') as f:
 
 lsoas.drop(excluded, axis=0, inplace=True)
 lsoas.index = range(lsoas.shape[0])
-#lsoas.to_file('maps/EOD_revised.shp', driver='ESRI Shapefile')
+lsoas.to_file('maps/EOD_revised.shp', driver='ESRI Shapefile')
 
 # Excluir
 for i in list(lsoas.index):
