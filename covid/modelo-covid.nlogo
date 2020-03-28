@@ -1,3 +1,6 @@
+;; Extensión para la mapa
+extensions [ gis ]
+
 turtles-own
   [ contagiado?                ;; Es verdadero si la tortuga contrae el virus. Corresponde al momento de contagio
     enfermo?                   ;; Se hace verdadero después del periodo de incubación
@@ -37,6 +40,12 @@ globals
 ;; El setup de cada una de las variables
 to setup
   clear-all
+  ;; Renderización del mapa
+  let view gis:load-dataset "maps/medellin.shp"
+  gis:set-world-envelope-ds gis:envelope-of view
+  gis:set-drawing-color black
+  gis:draw view 1.0
+
   ;; Inicializar variables
   set muertos 0
   set dia_previo 0
@@ -197,6 +206,7 @@ to ir-a-la-casa
   let colores 0
   ask turtles [
     if not member? self vistos [
+      ;; Centro distintos
       let centrox random-xcor
       let centroy random-ycor
       let indice 0
@@ -209,6 +219,8 @@ to ir-a-la-casa
         ]
         set indice (indice + 2)
       ]
+
+      ;; Posicionar cada familiar en la casa
       set centros (insert-item (length centros) centros centrox)
       set centros (insert-item (length centros) centros centroy)
       foreach familiares [
@@ -379,10 +391,10 @@ to mover
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-335
-10
-1848
-524
+455
+30
+1968
+1044
 -1
 -1
 5.0
@@ -397,8 +409,8 @@ GRAPHICS-WINDOW
 1
 -150
 150
--50
-50
+-100
+100
 1
 1
 1
@@ -406,10 +418,10 @@ ticks
 30.0
 
 SLIDER
-40
-100
-234
-133
+90
+110
+284
+143
 tasa-infección
 tasa-infección
 0.0
@@ -421,10 +433,10 @@ tasa-infección
 HORIZONTAL
 
 BUTTON
-35
-305
-105
-340
+110
+300
+180
+335
 NIL
 setup
 NIL
@@ -438,10 +450,10 @@ NIL
 1
 
 BUTTON
-115
-305
-187
-341
+195
+300
+267
+336
 NIL
 correr
 T
@@ -455,10 +467,10 @@ NIL
 0
 
 PLOT
-410
-540
-785
-775
+50
+435
+425
+670
 Población
 Horas
 Personas
@@ -476,10 +488,10 @@ PENS
 "Muertos" 1.0 0 -7858858 true "" "plot muertos"
 
 SLIDER
-40
-60
-237
-93
+90
+70
+287
+103
 tamaño-de-población
 tamaño-de-población
 10
@@ -491,10 +503,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-40
-380
-130
-425
+70
+370
+160
+415
 NIL
 %infectados
 1
@@ -502,10 +514,10 @@ NIL
 11
 
 MONITOR
-40
-435
-130
-480
+185
+370
+275
+415
 NIL
 %inmune
 1
@@ -513,10 +525,10 @@ NIL
 11
 
 MONITOR
-40
-495
-130
-540
+305
+370
+395
+415
 years
 ticks / 52
 1
@@ -524,10 +536,10 @@ ticks / 52
 11
 
 SLIDER
-40
-140
-235
-173
+90
+150
+285
+183
 init-infectados
 init-infectados
 0
@@ -539,10 +551,10 @@ NIL
 HORIZONTAL
 
 PLOT
-805
-540
-1180
-775
+50
+685
+425
+920
 Contagiados por dia
 Días
 Población
@@ -557,10 +569,10 @@ PENS
 "Contagiados" 1.0 1 -13840069 true "" "plot max (list (dia_actual - dia_previo) 0)"
 
 SLIDER
-40
-220
-302
-253
+90
+230
+352
+263
 duración-virus-patch
 duración-virus-patch
 1
@@ -572,10 +584,10 @@ horas
 HORIZONTAL
 
 BUTTON
-200
-305
-270
-340
+280
+300
+350
+335
 paso
 correr
 NIL
@@ -589,10 +601,10 @@ NIL
 1
 
 PLOT
-1200
-540
-1575
-775
+50
+945
+425
+1180
 Muertos por día
 Horas
 Personas
@@ -607,10 +619,10 @@ PENS
 "default" 1.0 1 -16777216 true "" "plot (max (list (muertos_actual - muertos_previo) 0))"
 
 SLIDER
-40
-20
-235
-53
+90
+30
+285
+63
 probabilidad-patch
 probabilidad-patch
 0
@@ -622,10 +634,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-40
-180
-212
-213
+90
+190
+262
+223
 radio-infección
 radio-infección
 0
