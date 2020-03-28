@@ -35,16 +35,14 @@ globals
     probs_familia        ;; Proporción del número de personas por familia
     numero_familia       ;; Numero de personas por familia
     primera_corrida      ;; Verificar si es la primera vez
+    contorno             ;; Mapa del contorno de Medellín
 ]
 
 ;; El setup de cada una de las variables
 to setup
   clear-all
   ;; Renderización del mapa
-  let view gis:load-dataset "maps/medellin.shp"
-  gis:set-world-envelope-ds gis:envelope-of view
-  gis:set-drawing-color black
-  gis:draw view 1.0
+  setup-gis
 
   ;; Inicializar variables
   set muertos 0
@@ -65,6 +63,12 @@ to setup
   reset-ticks
 end
 
+to setup-gis
+  set contorno gis:load-dataset "maps/medellin_merged.shp"
+  gis:set-world-envelope-ds gis:envelope-of contorno
+  gis:set-drawing-color black
+  gis:draw contorno 1.0
+end
 ;; Creación inicial de tortugas
 to setup-tortugas
   create-turtles tamaño-de-población [
@@ -211,18 +215,22 @@ to ir-a-la-casa
       let centroy random-ycor
       let indice 0
       while [ indice < length centros ] [
-        if sqrt((centrox - (item indice centros)) ^ 2 + (centroy - (item (indice + 1) centros)) ^ 2) < 1 [
-          while [ sqrt((centrox - (item indice centros)) ^ 2 + (centroy - (item (indice + 1) centros)) ^ 2) < 1 ] [
-            set centrox random-xcor
-            set centroy random-ycor
-          ]
-        ]
+        ;; Que las centros no estén incluidos
+        ;;while [ sqrt((centrox - (item indice centros)) ^ 2 + (centroy - (item (indice + 1) centros)) ^ 2) < 1 ] [
+         ;; set centrox random-xcor
+         ;; set centroy random-ycor
+        ;;]
         set indice (indice + 2)
       ]
 
+      while [ not gis:contained-by? (patch centrox centroy) contorno ] [
+          set centrox random-xcor
+          set centroy random-ycor
+      ]
+
       ;; Posicionar cada familiar en la casa
-      set centros (insert-item (length centros) centros centrox)
-      set centros (insert-item (length centros) centros centroy)
+      ;;set centros (insert-item (length centros) centros centrox)
+      ;;set centros (insert-item (length centros) centros centroy)
       foreach familiares [
         set vistos (insert-item (length vistos) vistos self)
         set casax centrox
@@ -230,6 +238,11 @@ to ir-a-la-casa
         let posicionx (centrox + (-0.5 + 1 * random-float 1))
         let posiciony (centroy + (-0.5 + 1 * random-float 1))
         setxy posicionx posiciony
+        while [ not gis:contained-by? self contorno ] [
+          set posicionx (centrox + (-0.5 + 1 * random-float 1))
+          set posiciony (centroy + (-0.5 + 1 * random-float 1))
+          setxy posicionx posiciony
+        ]
         ask patch-here [
           set pcolor 128
         ]
@@ -385,9 +398,17 @@ end
 
 ;; Turtles move about at random.
 to mover
-  rt random 100
-  lt random 100
+  let x0 xcor
+  let y0 ycor
+  let rt0 random 100
+  let lt0 random 100
+
+  rt rt0
+  lt lt0
   fd 1
+  if not gis:contained-by? self contorno [
+    setxy x0 y0
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -496,7 +517,7 @@ tamaño-de-población
 tamaño-de-población
 10
 10000
-2000.0
+100.0
 1
 1
 NIL
