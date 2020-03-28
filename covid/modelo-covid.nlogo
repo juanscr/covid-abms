@@ -517,7 +517,7 @@ tamaño-de-población
 tamaño-de-población
 10
 10000
-100.0
+500.0
 1
 1
 NIL
@@ -565,7 +565,7 @@ init-infectados
 init-infectados
 0
 100
-4.0
+20.0
 1
 1
 NIL
