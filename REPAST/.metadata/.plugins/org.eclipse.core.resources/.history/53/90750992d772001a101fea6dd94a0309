@@ -1,0 +1,8 @@
+package model;
+
+public class Citizen {
+	private int age;                  
+	private DiseaseStage stage;       
+	private int timeInfected;         
+	private int lengthInfectious;
+}

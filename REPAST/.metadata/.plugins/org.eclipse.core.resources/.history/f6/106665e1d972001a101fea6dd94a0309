@@ -1,0 +1,77 @@
+package model;
+
+import java.util.ArrayList;
+import repast.simphony.space.continuous.NdPoint;
+
+public class Citizen {
+	private int age;                  
+	private DiseaseStage stage;       
+	private int timeInfected;         
+	private int lengthInfectious;
+	private int timeIncubation;
+	private ArrayList<Citizen> family;
+	private NdPoint homeplaceLocation;
+	private boolean inQuarantine;
+	
+	
+
+	public Citizen(int age, DiseaseStage stage, int timeInfected, int lengthInfectious, int timeIncubation) {
+		super();
+		this.age = age;
+		this.stage = stage;
+		this.timeInfected = timeInfected;
+		this.lengthInfectious = lengthInfectious;
+		this.timeIncubation = timeIncubation;
+		this.inQuarantine = false;
+	}
+
+	public DiseaseStage getStage() {
+		return stage;
+	}
+
+	public void setStage(DiseaseStage stage) {
+		this.stage = stage;
+	}
+
+	public int getTimeInfected() {
+		return timeInfected;
+	}
+
+	public void setTimeInfected(int timeInfected) {
+		this.timeInfected = timeInfected;
+	}
+
+	public int getLengthInfectious() {
+		return lengthInfectious;
+	}
+
+	public void setLengthInfectious(int lengthInfectious) {
+		this.lengthInfectious = lengthInfectious;
+	}
+
+	public ArrayList<Citizen> getFamily() {
+		return family;
+	}
+
+	public void setFamily(ArrayList<Citizen> family) {
+		this.family = family;
+	}
+
+	public NdPoint getHomeplaceLocation() {
+		return homeplaceLocation;
+	}
+
+	public void setHomeplaceLocation(NdPoint homeplaceLocation) {
+		this.homeplaceLocation = homeplaceLocation;
+	}
+
+	public int getAge() {
+		return age;
+	}
+	
+	
+	
+	
+}
+
+

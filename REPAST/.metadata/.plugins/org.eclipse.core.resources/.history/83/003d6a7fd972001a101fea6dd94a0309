@@ -1,0 +1,23 @@
+package model;
+
+import java.util.ArrayList;
+import repast.simphony.space.continuous.NdPoint;
+
+public class Citizen {
+	private int age;                  
+	private DiseaseStage stage;       
+	private int timeInfected;         
+	private int lengthInfectious;
+	private ArrayList<Citizen> family;
+	private NdPoint homeplaceLocation;
+	
+	public Citizen(int age, DiseaseStage stage) {
+		super();
+		this.age = age;
+		this.stage = stage;
+	}
+	
+	
+}
+
+
