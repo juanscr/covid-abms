@@ -48,10 +48,14 @@ public class Citizen {
 	public void travel() {
 		// Move in continuous projection
 		NdPoint myPoint = space.getLocation(this);
-		double angle = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
+		double angle = RandomHelper.nextDoubleFromTo(-Math.PI / 2, Math.PI / 2);
 		double distance = 1;
-		space.moveByVector(this, distance, angle, 0);
-		
+		if (angle < 0) {
+			angle = 2 * Math.PI - angle;
+			distance = -1;
+		}
+		space.moveByVector(this, distance, angle, 1);
+
 		// Move in grid projection
 		myPoint = space.getLocation(this);
 		grid.moveTo(this, (int) myPoint.getX(), (int) myPoint.getY());

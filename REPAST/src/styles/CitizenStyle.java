@@ -29,7 +29,15 @@ public class CitizenStyle extends DefaultStyleOGL2D {
 
 	@Override
 	public float getScale(Object object) {
-		return 10f;
+		Citizen citizen = (Citizen) object;
+		int age = citizen.getAge();
+		if (age < 20) {
+			return 5f;
+		} else if (age < 60) {
+			return 10f;
+		} else {
+			return 15f;
+		}
 	}
 
 }

@@ -2,6 +2,7 @@ package simulation;
 
 import model.Citizen;
 import model.DiseaseStage;
+import model.Probabilities;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
@@ -40,16 +41,20 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		GridBuilderParameters<Object> params = new GridBuilderParameters<Object>(borderRule, gridAdder, true, 500, 500);
 		Grid<Object> grid = gridFactory.createGrid("grid", context, params);
 
+		// Age probabilities
+
 		// Susceptible citizens
-		int susceptibleCount = 2500;
+		int susceptibleCount = 10;
 		for (int i = 0; i < susceptibleCount; i++) {
-			context.add(new Citizen(space, grid, 18, DiseaseStage.SUSCEPTIBLE));
+			int age = Probabilities.getRandomAge();
+			context.add(new Citizen(space, grid, age, DiseaseStage.SUSCEPTIBLE));
 		}
 
 		// Infected citizens
 		int infectedCount = 10;
 		for (int i = 0; i < infectedCount; i++) {
-			context.add(new Citizen(space, grid, 18, DiseaseStage.INFECTED));
+			int age = Probabilities.getRandomAge();
+			context.add(new Citizen(space, grid, age, DiseaseStage.INFECTED));
 		}
 
 		// Synchronize space and grid locations
