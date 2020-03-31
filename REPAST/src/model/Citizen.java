@@ -1,61 +1,87 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.query.space.grid.GridCell;
+import repast.simphony.query.space.grid.GridCellNgh;
 import repast.simphony.random.RandomHelper;
-import repast.simphony.space.SpatialMath;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.space.grid.Grid;
+import repast.simphony.space.grid.GridPoint;
 
 public class Citizen {
-	private int age;                  
-	private DiseaseStage stage;       
-	private int timeInfected;         
-	private int lengthInfectious;
-	private int timeIncubation;
+
+	// Personal attributes
+	private int age;
 	private ArrayList<Citizen> family;
-	private NdPoint homeplaceLocation;
+
+	// Health attributes
+	private DiseaseStage diseaseStage;
+	private int timeInfected;
+	private int lengthInfectious;
+	private int incubationTime;
 	private boolean inQuarantine;
+
+	// Geographical attributes
 	private ContinuousSpace<Object> space;
 	private Grid<Object> grid;
-	
-	
+	private NdPoint homeplaceLocation;
 
-	public Citizen(ContinuousSpace < Object > space , Grid < Object > grid, int age, DiseaseStage stage) {
+	public Citizen(ContinuousSpace<Object> space, Grid<Object> grid, int age, DiseaseStage stage) {
 		super();
-		this.age = age;
-		this.stage = stage;
-		this.timeInfected = 0;
-		this.lengthInfectious = 0;
-		this.timeIncubation = 0;
-		this.inQuarantine = false;
 		this.space = space;
 		this.grid = grid;
-		
-		
+		this.age = age;
+		this.diseaseStage = stage;
 	}
-	
-	@ScheduledMethod ( start = 1 , interval = 1)
+
+	@ScheduledMethod(start = 1, interval = 1)
 	public void step() {
-		
+		travel();
+		if (diseaseStage == DiseaseStage.INFECTED) {
+			infect();
+		}
+	}
+
+	public void travel() {
 		NdPoint myPoint = space.getLocation(this);
-		double dirX = RandomHelper.nextDoubleFromTo(0, 1);
-		double dirY = RandomHelper.nextDoubleFromTo(0, 1);
-		NdPoint otherPoint = new NdPoint(dirX, dirY);
-		double angle = SpatialMath.calcAngleFor2DMovement(space, myPoint , otherPoint);
-		space.moveByVector(this, 1, angle, 0);
+		double angle = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
+		double distance = 1;
+		space.moveByVector(this, distance, angle, 0);
 		myPoint = space.getLocation(this);
 		grid.moveTo(this, (int) myPoint.getX(), (int) myPoint.getY());
-		
 	}
 
-	public DiseaseStage getStage() {
-		return stage;
+	public void infect() {
+		GridPoint pt = grid.getLocation(this);
+		GridCellNgh<Citizen> nghCreator = new GridCellNgh<Citizen>(grid, pt, Citizen.class, 0, 0);
+		List<GridCell<Citizen>> gridCells = nghCreator.getNeighborhood(true);
+
+		for (GridCell<Citizen> cell : gridCells) {
+			for (Citizen citizen : cell.items()) {
+				if (citizen.diseaseStage == DiseaseStage.SUSCEPTIBLE) {
+					double r = RandomHelper.nextDoubleFromTo(0, 1);
+					if (r < 0.80f) {
+						citizen.setExposed();
+					}
+				}
+			}
+		}
 	}
 
-	public void setStage(DiseaseStage stage) {
-		this.stage = stage;
+	public void setExposed() {
+		diseaseStage = DiseaseStage.EXPOSED;
+	}
+
+	public DiseaseStage getDiseaseStage() {
+		return diseaseStage;
+	}
+
+	public void setDiseaseStage(DiseaseStage diseaseStage) {
+		this.diseaseStage = diseaseStage;
 	}
 
 	public int getTimeInfected() {
@@ -93,10 +119,5 @@ public class Citizen {
 	public int getAge() {
 		return age;
 	}
-	
-	
-	
-	
+
 }
-
-

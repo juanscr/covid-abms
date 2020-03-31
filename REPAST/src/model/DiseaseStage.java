@@ -1,11 +1,5 @@
 package model;
 
 public enum DiseaseStage {
-	
-	EXPOSED,
-	INFECTED,
-	IMMUNE,
-	DEAD,
-	SUSCEPTIBLE
-
+	SUSCEPTIBLE, EXPOSED, INFECTED, IMMUNE, DEAD
 }

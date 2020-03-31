@@ -1,10 +1,10 @@
 <repast.simphony.visualization.engine.CartesianDisplayDescriptor simphonyVersion="2.7.0">
-  <name>city</name>
+  <name>MedellinCity</name>
   <type>2D</type>
   <styles>
     <entry>
       <string>model.Citizen</string>
-      <string>repast.simphony.visualizationOGL2D.DefaultStyleOGL2D</string>
+      <string>styles.CitizenStyle</string>
     </entry>
   </styles>
   <editedStyles>
@@ -23,10 +23,10 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>1223861244</hashCode>
+    <hashCode>-1505522929</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
-  <layoutProjection>grid</layoutProjection>
+  <layoutProjection>space</layoutProjection>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
@@ -60,7 +60,7 @@
             <map>
               <entry>
                 <string>COLOR</string>
-                <int>-1</int>
+                <int>-16777216</int>
               </entry>
               <entry>
                 <string>UNIT_SIZE</string>
@@ -68,7 +68,7 @@
               </entry>
               <entry>
                 <string>SHOW</string>
-                <boolean>true</boolean>
+                <boolean>false</boolean>
               </entry>
             </map>
           </entry>
@@ -93,7 +93,7 @@
               </entry>
               <entry>
                 <string>SHOW</string>
-                <boolean>false</boolean>
+                <boolean>true</boolean>
               </entry>
             </map>
           </entry>
