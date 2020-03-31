@@ -29,7 +29,6 @@ public class CitizenStyle extends DefaultStyleOGL2D {
 
 	@Override
 	public float getScale(Object object) {
-		Citizen citizen = (Citizen) object;
 		return 10f;
 	}
 

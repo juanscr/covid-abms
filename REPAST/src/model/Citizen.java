@@ -2,7 +2,6 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.query.space.grid.GridCell;
 import repast.simphony.query.space.grid.GridCellNgh;
@@ -47,10 +46,13 @@ public class Citizen {
 	}
 
 	public void travel() {
+		// Move in continuous projection
 		NdPoint myPoint = space.getLocation(this);
 		double angle = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
 		double distance = 1;
 		space.moveByVector(this, distance, angle, 0);
+		
+		// Move in grid projection
 		myPoint = space.getLocation(this);
 		grid.moveTo(this, (int) myPoint.getX(), (int) myPoint.getY());
 	}

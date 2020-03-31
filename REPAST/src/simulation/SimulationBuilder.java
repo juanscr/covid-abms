@@ -8,13 +8,15 @@ import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
 import repast.simphony.context.space.grid.GridFactory;
 import repast.simphony.context.space.grid.GridFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
-import repast.simphony.engine.environment.RunEnvironment;
-import repast.simphony.parameter.Parameters;
+import repast.simphony.space.continuous.ContinuousAdder;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
+import repast.simphony.space.continuous.PointTranslator;
 import repast.simphony.space.continuous.RandomCartesianAdder;
 import repast.simphony.space.grid.Grid;
+import repast.simphony.space.grid.GridAdder;
 import repast.simphony.space.grid.GridBuilderParameters;
+import repast.simphony.space.grid.GridPointTranslator;
 import repast.simphony.space.grid.SimpleGridAdder;
 import repast.simphony.space.grid.WrapAroundBorders;
 
@@ -26,20 +28,17 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 
 		// Continuous space projection
 		ContinuousSpaceFactory spaceFactory = ContinuousSpaceFactoryFinder.createContinuousSpaceFactory(null);
-		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace("space", context,
-			new RandomCartesianAdder<Object>(),
-			new repast.simphony.space.continuous.BouncyBorders(),
-			500, 500);
+		ContinuousAdder<Object> continuousAdder = new RandomCartesianAdder<Object>();
+		PointTranslator translator = new repast.simphony.space.continuous.BouncyBorders();
+		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace("space", context, continuousAdder,
+				translator, 500, 500);
 
 		// Grid projection
 		GridFactory gridFactory = GridFactoryFinder.createGridFactory(null);
-		Grid<Object> grid = gridFactory.createGrid("grid", context, new GridBuilderParameters<Object>(
-			new WrapAroundBorders(),
-			new SimpleGridAdder<Object>(),true,
-			500, 500));
-
-		// Simulation parameters
-		Parameters params = RunEnvironment.getInstance().getParameters();
+		GridPointTranslator borderRule = new WrapAroundBorders();
+		GridAdder<Object> gridAdder = new SimpleGridAdder<Object>();
+		GridBuilderParameters<Object> params = new GridBuilderParameters<Object>(borderRule, gridAdder, true, 500, 500);
+		Grid<Object> grid = gridFactory.createGrid("grid", context, params);
 
 		// Susceptible citizens
 		int susceptibleCount = 2500;
@@ -52,7 +51,8 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		for (int i = 0; i < infectedCount; i++) {
 			context.add(new Citizen(space, grid, 18, DiseaseStage.INFECTED));
 		}
-		
+
+		// Synchronize space and grid locations
 		for (Object obj : context) {
 			NdPoint pt = space.getLocation(obj);
 			grid.moveTo(obj, (int) pt.getX(), (int) pt.getY());
