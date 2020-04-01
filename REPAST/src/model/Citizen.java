@@ -27,7 +27,7 @@ public class Citizen {
 	// Geographical attributes
 	private ContinuousSpace<Object> space;
 	private Grid<Object> grid;
-	private NdPoint homeplaceLocation;
+	private NdPoint homePlace;
 
 	public Citizen(ContinuousSpace<Object> space, Grid<Object> grid, int age, DiseaseStage stage) {
 		super();
@@ -35,6 +35,8 @@ public class Citizen {
 		this.grid = grid;
 		this.age = age;
 		this.diseaseStage = stage;
+		
+		family = new ArrayList<Citizen>();
 	}
 
 	@ScheduledMethod(start = 1, interval = 1)
@@ -59,6 +61,11 @@ public class Citizen {
 		// Move in grid projection
 		myPoint = space.getLocation(this);
 		grid.moveTo(this, (int) myPoint.getX(), (int) myPoint.getY());
+	}
+	
+	public void travel(NdPoint move) {
+		space.moveTo(this, move.getX(), move.getY());
+		grid.moveTo(this, (int) move.getX(), (int) move.getY());
 	}
 
 	public void infect() {
@@ -114,12 +121,12 @@ public class Citizen {
 		this.family = family;
 	}
 
-	public NdPoint getHomeplaceLocation() {
-		return homeplaceLocation;
+	public NdPoint getHomePlace() {
+		return homePlace;
 	}
 
-	public void setHomeplaceLocation(NdPoint homeplaceLocation) {
-		this.homeplaceLocation = homeplaceLocation;
+	public void setHomePlace(NdPoint homeplaceLocation) {
+		this.homePlace = homeplaceLocation;
 	}
 
 	public int getAge() {

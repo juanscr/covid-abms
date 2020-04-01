@@ -1,5 +1,7 @@
 package simulation;
 
+import java.util.ArrayList;
+
 import model.Citizen;
 import model.DiseaseStage;
 import model.Probabilities;
@@ -44,7 +46,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		// Age probabilities
 
 		// Susceptible citizens
-		int susceptibleCount = 10;
+		int susceptibleCount = 100;
 		for (int i = 0; i < susceptibleCount; i++) {
 			int age = Probabilities.getRandomAge();
 			context.add(new Citizen(space, grid, age, DiseaseStage.SUSCEPTIBLE));
@@ -55,6 +57,28 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		for (int i = 0; i < infectedCount; i++) {
 			int age = Probabilities.getRandomAge();
 			context.add(new Citizen(space, grid, age, DiseaseStage.INFECTED));
+		}
+		
+		// Create list of citizens
+		ArrayList<Citizen> citizenList = new ArrayList<Citizen>();
+		for (Object obj : context) {
+			Citizen citizen = (Citizen) obj;
+			citizenList.add(citizen);
+		}
+		
+		// Create family
+		ArrayList<Citizen> uniqueFamilies = new ArrayList<Citizen>();
+		for (Citizen citizen : citizenList) {
+			if (citizen.getFamily().size() == 0) {
+				Probabilities.getFamily(citizen, citizenList);
+				uniqueFamilies.add(citizen);
+			}
+		}
+		
+		// Create houses for each family
+		ArrayList<NdPoint> houses = new ArrayList<NdPoint>();
+		for (Citizen citizen : uniqueFamilies) {
+			Probabilities.createHouse(citizen, houses, space);
 		}
 
 		// Synchronize space and grid locations

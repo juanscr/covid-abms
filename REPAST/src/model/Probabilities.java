@@ -2,6 +2,8 @@ package model;
 
 import java.util.ArrayList;
 import repast.simphony.random.RandomHelper;
+import repast.simphony.space.continuous.ContinuousSpace;
+import repast.simphony.space.continuous.NdPoint;
 
 public abstract class Probabilities {
 
@@ -9,6 +11,7 @@ public abstract class Probabilities {
 	private static double ageProbs[] = { 14.43, 16.9, 17.28, 14.87, 12.21, 11.04, 7.28, 3.93, 2.06 };
 	private static int ageRanges[][] = { { 0, 9 }, { 10, 19 }, { 20, 29 }, { 30, 39 }, { 40, 49 }, { 50, 59 }, { 60, 69 }, { 70, 79 }, { 80, 121 } };
 	private static int familyProbs[] = { 19, 23, 24, 19, 8, 7 };
+	private static int houseRadius = 1;
 
 	public static int getRandomAge() {
 		double r = RandomHelper.nextDoubleFromTo(0, 1) * 100;
@@ -28,11 +31,14 @@ public abstract class Probabilities {
 
 		if (toSelect.getAge() < 18) {
 			// Conditional probability
-			int familyProbsKids[] = new int[familyProbs.length - 1];
-			int sumProb = 100 - familyProbs[0];
-			for (int j = 0; j < familyProbsKids.length; j++) {
-				familyProbsKids[j] = familyProbs[j + 1] * 100 / sumProb; 
+			double familyProbsKids[] = new double[familyProbs.length - 1];
+			double sumProb = 100 - familyProbs[0];
+			double sumPartial = 0;
+			for (int j = 1; j < familyProbsKids.length; j++) {
+				familyProbsKids[j] = familyProbs[j + 1] * 100 / sumProb;
+				sumPartial += familyProbsKids[j];
 			}
+			familyProbsKids[0] = 100 - sumPartial;
 			
 			// How much people are in the family
 			int acum = 0;
@@ -40,8 +46,8 @@ public abstract class Probabilities {
 			int numberFamily = 0;
 			for (int i = 0; i < familyProbsKids.length; i++) {
 				acum += familyProbsKids[i];
-				if (acum < r) {
-					numberFamily = i - 1;
+				if (r < acum) {
+					numberFamily = i;
 					break;
 				}
 			}
@@ -50,17 +56,17 @@ public abstract class Probabilities {
 			Citizen adult = null;
 			int indexAdult = 0;
 			for (Citizen citizen : citizenList) {
-				if (citizen.getAge() >= 18 && citizen.getFamily().equals(null)) {
+				if (citizen.getAge() >= 18 && citizen.getFamily().size() == 0) {
 					adult = citizen;
 					break;
 				}
 				indexAdult += 1;
 			}
 			
-			if (adult.equals(null)) {
+			if (adult == null) {
 				// Case in which every adult has a family
 				for (Citizen citizen : citizenList) {
-					if (citizen.getAge() >= 18 && !citizen.getFamily().equals(null)) {
+					if (citizen.getAge() >= 18 && citizen.getFamily().size() != 0) {
 						family = citizen.getFamily();
 						family.add(toSelect);
 						break;
@@ -76,12 +82,11 @@ public abstract class Probabilities {
 						if (i == indexAdult || citizenList.get(i).equals(toSelect))
 							continue;
 						
-						if (citizenList.get(i).getFamily().equals(null)) {
-							citizenList.add(citizenList.get(i));
-						}
-						if (numberFamily == citizenList.size() - 2) {
+						if (citizenList.get(i).getFamily().size() == 0)
+							family.add(citizenList.get(i));
+						
+						if (numberFamily == family.size() - 2)
 							break;
-						}
 					}
 				}
 			}
@@ -91,30 +96,57 @@ public abstract class Probabilities {
 		    int numberFamily = 0;
 			for (int i = 0; i < familyProbs.length; i++) {
 				acum += familyProbs[i];
-				if (acum < r) {
-					numberFamily = i - 1;
+				if (r < acum) {
+					numberFamily = i;
 					break;
 				}
 			}
-			
 			// How much people are in the family
 			if (numberFamily > 0) {
 				for (int i = 0; i < citizenList.size(); i++) {
 					if (citizenList.get(i).equals(toSelect))
 						continue;
 								
-					if (citizenList.get(i).getFamily().equals(null)) {
-						citizenList.add(citizenList.get(i));
-					}
-					if (numberFamily == citizenList.size() - 1) {
+					if (citizenList.get(i).getFamily().size() == 0)
+						family.add(citizenList.get(i));
+
+					if (numberFamily == family.size() - 1)
 						break;
-					}
+				}
 			}
-						}
 		}
 		
 		for (Citizen member : family) {
 			member.setFamily(family);
+		}
+	}
+	
+	public static void createHouse(Citizen citizen, ArrayList<NdPoint> houses, ContinuousSpace<Object> space) {
+		double randomX = RandomHelper.nextDoubleFromTo(0, space.getDimensions().getWidth());
+		double randomY = RandomHelper.nextDoubleFromTo(0, space.getDimensions().getHeight());
+		NdPoint houseSelected = new NdPoint(randomX, randomY);
+		
+		// Have disjointed houses
+		for (NdPoint house : houses) {
+			while (space.getDistance(house, houseSelected) < 2 * houseRadius) {
+				randomX = RandomHelper.nextDoubleFromTo(0, space.getDimensions().getWidth());
+				randomY = RandomHelper.nextDoubleFromTo(0, space.getDimensions().getHeight());
+				houseSelected = new NdPoint(randomX, randomY);
+			}
+		}
+		
+		houses.add(houseSelected);
+		
+		// Select house for family
+		double positionX;
+		double positionY;
+		for (Citizen citizenFamily : citizen.getFamily()) {
+			citizenFamily.setHomePlace(houseSelected);
+			
+			positionX = houseSelected.getX() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1);
+			positionY = houseSelected.getY() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1);
+			
+			citizenFamily.travel(new NdPoint(positionX, positionY));
 		}
 	}
 }
