@@ -2,7 +2,12 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.schedule.ISchedule;
+import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.essentials.RepastEssentials;
 import repast.simphony.query.space.grid.GridCell;
 import repast.simphony.query.space.grid.GridCellNgh;
 import repast.simphony.random.RandomHelper;
@@ -10,6 +15,7 @@ import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridPoint;
+import simulation.Scheduler;
 
 public class Citizen {
 
@@ -27,7 +33,7 @@ public class Citizen {
 	// Geographical attributes
 	private ContinuousSpace<Object> space;
 	private Grid<Object> grid;
-	private NdPoint homePlace;
+	private NdPoint homeplace;
 
 	public Citizen(ContinuousSpace<Object> space, Grid<Object> grid, int age, DiseaseStage stage) {
 		super();
@@ -35,8 +41,7 @@ public class Citizen {
 		this.grid = grid;
 		this.age = age;
 		this.diseaseStage = stage;
-		
-		family = new ArrayList<Citizen>();
+		this.family = new ArrayList<Citizen>();
 	}
 
 	@ScheduledMethod(start = 1, interval = 1)
@@ -48,24 +53,19 @@ public class Citizen {
 	}
 
 	public void travel() {
-		// Move in continuous projection
-		NdPoint myPoint = space.getLocation(this);
-		double angle = RandomHelper.nextDoubleFromTo(-Math.PI / 2, Math.PI / 2);
 		double distance = 1;
-		if (angle < 0) {
-			angle = 2 * Math.PI - angle;
-			distance = -1;
+		double theta = RandomHelper.nextDoubleFromTo(-2*Math.PI, 2*Math.PI);
+		if (theta < 0) {
+			theta = 2 * Math.PI - theta;
+			distance *= -1;
 		}
-		space.moveByVector(this, distance, angle, 1);
-
-		// Move in grid projection
-		myPoint = space.getLocation(this);
-		grid.moveTo(this, (int) myPoint.getX(), (int) myPoint.getY());
+		NdPoint destination = space.moveByVector(this, distance, theta, 0);
+		relocate(destination);
 	}
 	
-	public void travel(NdPoint move) {
-		space.moveTo(this, move.getX(), move.getY());
-		grid.moveTo(this, (int) move.getX(), (int) move.getY());
+	public void relocate(NdPoint destination) {
+		space.moveTo(this, destination.getX(), destination.getY());
+		grid.moveTo(this, (int) destination.getX(), (int) destination.getY());
 	}
 
 	public void infect() {
@@ -87,8 +87,13 @@ public class Citizen {
 
 	public void setExposed() {
 		diseaseStage = DiseaseStage.EXPOSED;
+		Scheduler.getInstance().scheduleOneTimeEvent(200, this, "setInfected");
 	}
 
+	public void setInfected() {
+		diseaseStage = DiseaseStage.INFECTED;
+	}
+	
 	public DiseaseStage getDiseaseStage() {
 		return diseaseStage;
 	}
@@ -121,16 +126,16 @@ public class Citizen {
 		this.family = family;
 	}
 
-	public NdPoint getHomePlace() {
-		return homePlace;
+	public NdPoint getHomeplace() {
+		return homeplace;
 	}
 
-	public void setHomePlace(NdPoint homeplaceLocation) {
-		this.homePlace = homeplaceLocation;
+	public void setHomeplace(NdPoint homeplaceLocation) {
+		this.homeplace = homeplaceLocation;
 	}
 
 	public int getAge() {
 		return age;
 	}
-
+	
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import model.Citizen;
 import model.DiseaseStage;
+import model.Heuristics;
 import model.Probabilities;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
@@ -43,42 +44,40 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		GridBuilderParameters<Object> params = new GridBuilderParameters<Object>(borderRule, gridAdder, true, 500, 500);
 		Grid<Object> grid = gridFactory.createGrid("grid", context, params);
 
-		// Age probabilities
-
 		// Susceptible citizens
-		int susceptibleCount = 100;
+		int susceptibleCount = 20000;
 		for (int i = 0; i < susceptibleCount; i++) {
 			int age = Probabilities.getRandomAge();
 			context.add(new Citizen(space, grid, age, DiseaseStage.SUSCEPTIBLE));
 		}
 
 		// Infected citizens
-		int infectedCount = 10;
+		int infectedCount = 100;
 		for (int i = 0; i < infectedCount; i++) {
 			int age = Probabilities.getRandomAge();
 			context.add(new Citizen(space, grid, age, DiseaseStage.INFECTED));
 		}
-		
-		// Create list of citizens
+
+		// Create citizen list
 		ArrayList<Citizen> citizenList = new ArrayList<Citizen>();
 		for (Object obj : context) {
 			Citizen citizen = (Citizen) obj;
 			citizenList.add(citizen);
 		}
-		
-		// Create family
+
+		// Create families
 		ArrayList<Citizen> uniqueFamilies = new ArrayList<Citizen>();
 		for (Citizen citizen : citizenList) {
-			if (citizen.getFamily().size() == 0) {
-				Probabilities.getFamily(citizen, citizenList);
+			if (citizen.getFamily().isEmpty()) {
+				Heuristics.getFamily(citizen, citizenList);
 				uniqueFamilies.add(citizen);
 			}
 		}
-		
+
 		// Create houses for each family
 		ArrayList<NdPoint> houses = new ArrayList<NdPoint>();
 		for (Citizen citizen : uniqueFamilies) {
-			Probabilities.createHouse(citizen, houses, space);
+			Heuristics.createHouse(citizen, houses, space);
 		}
 
 		// Synchronize space and grid locations
