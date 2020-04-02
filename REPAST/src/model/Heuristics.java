@@ -106,15 +106,17 @@ public abstract class Heuristics {
 	}
 
 	public static void createHouse(Citizen citizen, ArrayList<NdPoint> houses, ContinuousSpace<Object> space) {
-		double randomX = RandomHelper.nextDoubleFromTo(0, space.getDimensions().getWidth());
-		double randomY = RandomHelper.nextDoubleFromTo(0, space.getDimensions().getHeight());
+		double width = space.getDimensions().getWidth();
+		double height = space.getDimensions().getHeight();
+		double randomX = RandomHelper.nextDoubleFromTo(0, width);
+		double randomY = RandomHelper.nextDoubleFromTo(0, height);
 		NdPoint houseSelected = new NdPoint(randomX, randomY);
 
 		// Have disjointed houses
 		for (NdPoint house : houses) {
 			while (space.getDistance(house, houseSelected) < 2 * houseRadius) {
-				randomX = RandomHelper.nextDoubleFromTo(0, space.getDimensions().getWidth());
-				randomY = RandomHelper.nextDoubleFromTo(0, space.getDimensions().getHeight());
+				randomX = RandomHelper.nextDoubleFromTo(0, width);
+				randomY = RandomHelper.nextDoubleFromTo(0, height);
 				houseSelected = new NdPoint(randomX, randomY);
 			}
 		}
@@ -126,8 +128,10 @@ public abstract class Heuristics {
 		double positionY;
 		for (Citizen citizenFamily : citizen.getFamily()) {
 			citizenFamily.setHomeplace(houseSelected);
-			positionX = Math.min(Math.max(houseSelected.getX() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1),0),499);
-			positionY = Math.min(Math.max(houseSelected.getY() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1),0),499);
+			positionX = Math.min(Math.max(houseSelected.getX() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1),0), 
+					    width - 1);
+			positionY = Math.min(Math.max(houseSelected.getY() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1),0),
+					    height - 1);
 			citizenFamily.relocate(new NdPoint(positionX, positionY));
 		}
 	}

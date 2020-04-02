@@ -3,6 +3,7 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
+import cern.jet.random.Gamma;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.ScheduleParameters;
@@ -34,6 +35,13 @@ public class Citizen {
 	private ContinuousSpace<Object> space;
 	private Grid<Object> grid;
 	private NdPoint homeplace;
+	
+	// Constants
+	private static final double INFECTION_PROBABILITY = 0.8;
+
+	private static final double ALPHA_INFECTIOUS = 3.37;
+	private static final double BETA_INFECTIOUS = 1.49;
+	private static final double MIN_INFECTIOUS = 2.0;
 
 	public Citizen(ContinuousSpace<Object> space, Grid<Object> grid, int age, DiseaseStage stage) {
 		super();
@@ -77,7 +85,7 @@ public class Citizen {
 			for (Citizen citizen : cell.items()) {
 				if (citizen.diseaseStage == DiseaseStage.SUSCEPTIBLE) {
 					double r = RandomHelper.nextDoubleFromTo(0, 1);
-					if (r < 0.80f) {
+					if (r < INFECTION_PROBABILITY) {
 						citizen.setExposed();
 					}
 				}
@@ -87,7 +95,13 @@ public class Citizen {
 
 	public void setExposed() {
 		diseaseStage = DiseaseStage.EXPOSED;
-		Scheduler.getInstance().scheduleOneTimeEvent(200, this, "setInfected");
+		
+		// Generate a gamma function random generator.
+		Gamma gammaFunction = RandomHelper.createGamma(ALPHA_INFECTIOUS, 1 / BETA_INFECTIOUS);
+		double timeInfectious = (gammaFunction.nextDouble() + MIN_INFECTIOUS) * 24;
+		
+		// Schedule the infection event
+		Scheduler.getInstance().scheduleOneTimeEvent(timeInfectious, this, "setInfected");
 	}
 
 	public void setInfected() {

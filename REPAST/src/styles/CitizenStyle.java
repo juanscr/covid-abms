@@ -32,11 +32,11 @@ public class CitizenStyle extends DefaultStyleOGL2D {
 		Citizen citizen = (Citizen) object;
 		int age = citizen.getAge();
 		if (age < 20) {
-			return 5f;
+			return 1f;
 		} else if (age < 60) {
-			return 10f;
+			return 5f;
 		} else {
-			return 15f;
+			return 10f;
 		}
 	}
 
