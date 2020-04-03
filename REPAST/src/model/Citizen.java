@@ -46,7 +46,7 @@ public class Citizen {
 	}
 
 	public void travel() {
-		double distance = 2*RandomHelper.nextIntFromTo(0, 1)-1;
+		double distance = 2 * RandomHelper.nextIntFromTo(0, 1) - 1;
 		double theta = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
 		space.moveByVector(this, distance, theta, 0);
 	}
