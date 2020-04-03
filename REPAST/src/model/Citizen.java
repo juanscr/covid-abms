@@ -1,7 +1,6 @@
 package model;
 
 import java.util.ArrayList;
-
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.query.space.continuous.ContinuousWithin;
