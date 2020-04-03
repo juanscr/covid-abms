@@ -128,10 +128,10 @@ public abstract class Heuristics {
 		double positionY;
 		for (Citizen citizenFamily : citizen.getFamily()) {
 			citizenFamily.setHomeplace(houseSelected);
-			positionX = Math.min(Math.max(houseSelected.getX() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1),0), 
-					    width - 1);
-			positionY = Math.min(Math.max(houseSelected.getY() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1),0),
-					    height - 1);
+			positionX = Math.min(Math.max(houseSelected.getX() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1), 0),
+					width - 1);
+			positionY = Math.min(Math.max(houseSelected.getY() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1), 0),
+					height - 1);
 			citizenFamily.relocate(new NdPoint(positionX, positionY));
 		}
 	}
