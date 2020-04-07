@@ -1,12 +1,17 @@
 package model;
 
 import java.util.ArrayList;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.query.space.continuous.ContinuousWithin;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
+import repast.simphony.space.gis.Geography;
 import simulation.Scheduler;
 
 public class Citizen {
@@ -25,12 +30,15 @@ public class Citizen {
 	// Projection attributes
 	private Context<Object> context;
 	private ContinuousSpace<Object> space;
+	private Geography<Object> geography;
 	private NdPoint homeplace;
 
-	public Citizen(Context<Object> context, ContinuousSpace<Object> space, int age, DiseaseStage stage) {
+	public Citizen(Context<Object> context, ContinuousSpace<Object> space, Geography<Object> geography, 
+			       int age, DiseaseStage stage) {
 		super();
 		this.context = context;
 		this.space = space;
+		this.geography = geography;
 		this.age = age;
 		this.diseaseStage = stage;
 		this.family = new ArrayList<Citizen>();
@@ -45,13 +53,26 @@ public class Citizen {
 	}
 
 	public void travel() {
+		// Continuous Space movement
 		double distance = 2 * RandomHelper.nextIntFromTo(0, 1) - 1;
 		double theta = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
 		space.moveByVector(this, distance, theta, 0);
+		
+		// Geography movement
+		geography.moveByVector(this, distance, theta);		
 	}
 
 	public void relocate(NdPoint destination) {
+		// Continuous Space movement
 		space.moveTo(this, destination.getX(), destination.getY());
+		
+		// Geography movement
+		Geometry geometry = geography.getGeometry(this);
+		Coordinate coord = geometry.getCoordinate();
+		System.out.println(coord);
+		coord.x = destination.getX();
+		coord.y = destination.getY();
+		geography.move(this, geometry);
 	}
 
 	public void infect() {
