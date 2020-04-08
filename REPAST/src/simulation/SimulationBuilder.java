@@ -3,31 +3,28 @@ package simulation;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.geotools.renderer.GTRenderer;
-import org.geotools.renderer.lite.StreamingRenderer;
 import org.opengis.feature.simple.SimpleFeature;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.util.AffineTransformation;
 
+import geography.Border;
 import model.Citizen;
 import model.DiseaseStage;
 import model.Heuristics;
 import model.Probabilities;
 import repast.simphony.context.Context;
-import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
-import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
 import repast.simphony.context.space.gis.GeographyFactory;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
-import repast.simphony.space.continuous.ContinuousAdder;
-import repast.simphony.space.continuous.ContinuousSpace;
+import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.space.continuous.NdPoint;
-import repast.simphony.space.continuous.PointTranslator;
-import repast.simphony.space.continuous.RandomCartesianAdder;
-import repast.simphony.space.gis.GISAdder;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
-import repast.simphony.space.gis.RandomGISAdder;
 
 public class SimulationBuilder implements ContextBuilder<Object> {
 
@@ -35,47 +32,54 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 	public Context<Object> build(Context<Object> context) {
 		context.setId("covid19ABMS");
 		
-		// Continuous space projection
-		ContinuousSpaceFactory spaceFactory = ContinuousSpaceFactoryFinder.createContinuousSpaceFactory(null);
-		ContinuousAdder<Object> continuousAdder = new RandomCartesianAdder<Object>();
-		PointTranslator translator = new repast.simphony.space.continuous.BouncyBorders();
-		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace("space", context, continuousAdder,
-				translator, 500, 500);
+		// Read Aburra Valley border geometry
+		List<SimpleFeature> borderFeatures = Reader.loadGeometryFromShapefile("../covid/maps/EOD_border.shp");
+		Geometry borderGeometry = (MultiPolygon) borderFeatures.get(0).getDefaultGeometry();
+		AffineTransformation transformation = new AffineTransformation();
+		transformation.scale(2, 2);
+		borderGeometry = transformation.transform(borderGeometry);
 		
-		// Loading Medellin Map
-		List<SimpleFeature> medellinFeature = Reader.loadFeaturesFromShapefile("../covid/maps/EOD.shp");
-		Geometry medellinGeometry = (Geometry) medellinFeature.get(0).getDefaultGeometry();
-		for (int i = 1; i < medellinFeature.size(); i++)
-			medellinGeometry.union((Geometry) medellinFeature.get(i).getDefaultGeometry());
+		// Geography projection
+		GeographyParameters<Object> params = new GeographyParameters<Object>();
+		GeographyFactory geographyFactory = GeographyFactoryFinder.createGeographyFactory(null);
+		Geography<Object> geography = geographyFactory.createGeography("Valle de Aburra", context, params);
 		
-		System.out.println(medellinGeometry);
-		
-		// Geography settings
-		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
-		GISAdder<Object> geographyAdder = new RandomGISAdder<Object>(medellinGeometry);
-		geoParams.setAdder(geographyAdder);
-		GeographyFactory geoFactory = GeographyFactoryFinder.createGeographyFactory(null);
-		Geography<Object> geography = geoFactory.createGeography("Medellin", context, geoParams);
+		// Add border to context
+		Border border = new Border(borderGeometry);
+		border.setGeometryInGeography(geography);
+		context.add(border);
 		
 		// Susceptible citizens
-		int susceptibleCount = 100;
+		int susceptibleCount = 80;
 		for (int i = 0; i < susceptibleCount; i++) {
 			int age = Probabilities.getRandomAge();
-			context.add(new Citizen(context, space, geography, age, DiseaseStage.SUSCEPTIBLE));
+			context.add(new Citizen(context, geography, borderGeometry, age, DiseaseStage.SUSCEPTIBLE));
 		}
 
 		// Infected citizens
 		int infectedCount = 10;
 		for (int i = 0; i < infectedCount; i++) {
 			int age = Probabilities.getRandomAge();
-			context.add(new Citizen(context, space, geography, age, DiseaseStage.INFECTED));
+			context.add(new Citizen(context, geography, borderGeometry, age, DiseaseStage.INFECTED));
 		}
 
 		// Create citizen list
 		ArrayList<Citizen> citizenList = new ArrayList<Citizen>();
 		for (Object obj : context) {
-			Citizen citizen = (Citizen) obj;
-			citizenList.add(citizen);
+			if (obj instanceof Citizen) {
+				Citizen citizen = (Citizen) obj;
+				citizenList.add(citizen);
+			}
+		}
+		
+		// Create geometry for agents
+		List<Coordinate> agentCoordinates = 
+				         GeometryUtil.generateRandomPointsInPolygon(borderGeometry, citizenList.size());
+		GeometryFactory geometryFactory = new GeometryFactory();
+		for (int i = 0; i < agentCoordinates.size(); i++) {
+			Coordinate coordinate = agentCoordinates.get(i);
+			Point pointAgent = geometryFactory.createPoint(coordinate);
+			geography.move(citizenList.get(i), pointAgent);
 		}
 
 		// Create families
@@ -90,7 +94,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		// Create houses for each family
 		ArrayList<NdPoint> houses = new ArrayList<NdPoint>();
 		for (Citizen citizen : uniqueFamilies) {
-			Heuristics.createHouse(citizen, houses, space);
+			Heuristics.createHouse(citizen, houses, geography, borderGeometry);
 		}
 
 		return context;

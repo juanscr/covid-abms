@@ -1,14 +1,19 @@
 package model;
 
 import java.util.ArrayList;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+
+import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.random.RandomHelper;
-import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
+import repast.simphony.space.gis.Geography;
 
 public abstract class Heuristics {
 
 	private static int familyProbs[] = { 19, 23, 24, 19, 8, 7 };
-	private static int houseRadius = 1;
+	private static int houseRadius = 0;
 
 	public static void getFamily(Citizen toSelect, ArrayList<Citizen> citizenList) {
 		ArrayList<Citizen> family = new ArrayList<Citizen>();
@@ -100,24 +105,24 @@ public abstract class Heuristics {
 			}
 		}
 
-		for (Citizen member : family) {
+		for (Citizen member : family)
 			member.setFamily(family);
-		}
 	}
 
-	public static void createHouse(Citizen citizen, ArrayList<NdPoint> houses, ContinuousSpace<Object> space) {
-		double width = space.getDimensions().getWidth();
-		double height = space.getDimensions().getHeight();
-		double randomX = RandomHelper.nextDoubleFromTo(0, width);
-		double randomY = RandomHelper.nextDoubleFromTo(0, height);
-		NdPoint houseSelected = new NdPoint(randomX, randomY);
+	public static void createHouse(Citizen citizen, ArrayList<NdPoint> houses, Geography<Object> geography,
+			                       Geometry boundary) {
+		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(boundary, 1).get(0);
+		NdPoint houseSelected = new NdPoint(coordinate.x, coordinate.y);
 
 		// Have disjointed houses
 		for (NdPoint house : houses) {
-			while (space.getDistance(house, houseSelected) < 2 * houseRadius) {
-				randomX = RandomHelper.nextDoubleFromTo(0, width);
-				randomY = RandomHelper.nextDoubleFromTo(0, height);
-				houseSelected = new NdPoint(randomX, randomY);
+			double distance = Math.pow((house.getX() - houseSelected.getX()), 2);
+			distance += Math.pow((house.getY() - houseSelected.getY()), 2);
+			while (Math.sqrt(distance) < 2 * houseRadius) {
+				coordinate = GeometryUtil.generateRandomPointsInPolygon(boundary, 1).get(0);
+				houseSelected = new NdPoint(coordinate.x, coordinate.y);
+				distance = Math.pow((house.getX() - houseSelected.getX()), 2);
+				distance += Math.pow((house.getY() - houseSelected.getY()), 2);
 			}
 		}
 
@@ -128,10 +133,8 @@ public abstract class Heuristics {
 		double positionY;
 		for (Citizen citizenFamily : citizen.getFamily()) {
 			citizenFamily.setHomeplace(houseSelected);
-			positionX = Math.min(Math.max(houseSelected.getX() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1), 0),
-					width - 1);
-			positionY = Math.min(Math.max(houseSelected.getY() - 0.5 + RandomHelper.nextDoubleFromTo(0, 1), 0),
-					height - 1);
+			positionX = houseSelected.getX() - houseRadius / 2 + RandomHelper.nextDoubleFromTo(0, houseRadius);
+			positionY = houseSelected.getY() - houseRadius / 2 + RandomHelper.nextDoubleFromTo(0, houseRadius);
 			citizenFamily.relocate(new NdPoint(positionX, positionY));
 		}
 	}

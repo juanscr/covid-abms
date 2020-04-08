@@ -9,7 +9,6 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.query.space.continuous.ContinuousWithin;
 import repast.simphony.random.RandomHelper;
-import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.space.gis.Geography;
 import simulation.Scheduler;
@@ -29,18 +28,21 @@ public class Citizen {
 
 	// Projection attributes
 	private Context<Object> context;
-	private ContinuousSpace<Object> space;
 	private Geography<Object> geography;
+	private Geometry boundary;
 	private NdPoint homeplace;
+	
+	// Movement attributes
+	private static final int MAX_MOVEMENT = 1000;
 
-	public Citizen(Context<Object> context, ContinuousSpace<Object> space, Geography<Object> geography, 
+	public Citizen(Context<Object> context, Geography<Object> geography, Geometry boundary,
 			       int age, DiseaseStage stage) {
 		super();
 		this.context = context;
-		this.space = space;
-		this.geography = geography;
 		this.age = age;
+		this.geography = geography;
 		this.diseaseStage = stage;
+		this.boundary = boundary;
 		this.family = new ArrayList<Citizen>();
 	}
 
@@ -53,25 +55,21 @@ public class Citizen {
 	}
 
 	public void travel() {
-		// Continuous Space movement
-		double distance = 2 * RandomHelper.nextIntFromTo(0, 1) - 1;
-		double theta = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
-		space.moveByVector(this, distance, theta, 0);
-		
 		// Geography movement
-		geography.moveByVector(this, distance, theta);		
+		double distance = 2 * RandomHelper.nextDoubleFromTo(0, MAX_MOVEMENT) - MAX_MOVEMENT;
+		double theta = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
+		geography.moveByVector(this, distance, theta);
+		
+		if (!boundary.contains(geography.getGeometry(this)))
+			geography.moveByVector(this, -2 * distance, theta);
 	}
 
 	public void relocate(NdPoint destination) {
-		// Continuous Space movement
-		space.moveTo(this, destination.getX(), destination.getY());
-		
 		// Geography movement
 		Geometry geometry = geography.getGeometry(this);
-		Coordinate coord = geometry.getCoordinate();
-		System.out.println(coord);
-		coord.x = destination.getX();
-		coord.y = destination.getY();
+		Coordinate coordinate = geometry.getCoordinate();
+		coordinate.x = destination.getX();
+		coordinate.y = destination.getY();
 		geography.move(this, geometry);
 	}
 
