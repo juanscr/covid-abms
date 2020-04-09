@@ -1,10 +1,8 @@
 package model;
 
 import java.util.ArrayList;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.continuous.NdPoint;
@@ -110,7 +108,7 @@ public abstract class Heuristics {
 	}
 
 	public static void createHouse(Citizen citizen, ArrayList<NdPoint> houses, Geography<Object> geography,
-			                       Geometry boundary) {
+			Geometry boundary) {
 		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(boundary, 1).get(0);
 		NdPoint houseSelected = new NdPoint(coordinate.x, coordinate.y);
 

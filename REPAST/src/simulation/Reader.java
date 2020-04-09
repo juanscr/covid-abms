@@ -13,31 +13,30 @@ import org.geotools.data.simple.SimpleFeatureSource;
 import org.opengis.feature.simple.SimpleFeature;
 
 public class Reader {
-	
-	public static List<SimpleFeature> loadGeometryFromShapefile(String filename){
-        File file = new File(filename);
-        
-        try {
-	        FileDataStore store = FileDataStoreFinder.getDataStore(file);
-	        SimpleFeatureSource featureSource = store.getFeatureSource();
-	        SimpleFeatureCollection featureCollection = featureSource.getFeatures();
-	        SimpleFeatureIterator featureIterator = featureCollection.features();
-	        
-	        ArrayList<SimpleFeature> simpleFeatures = new ArrayList<SimpleFeature>();  
-	        while (featureIterator.hasNext())
-	        	simpleFeatures.add(featureIterator.next());
-	        
-	        featureIterator.close();
-	        store.dispose();
-	        
-	        return simpleFeatures;
-	        
-        }
-	    catch (IOException e1) {
-	    	e1.printStackTrace();
-	    }
-        
-        return null;
+
+	public static List<SimpleFeature> loadGeometryFromShapefile(String filename) {
+		File file = new File(filename);
+
+		try {
+			FileDataStore store = FileDataStoreFinder.getDataStore(file);
+			SimpleFeatureSource featureSource = store.getFeatureSource();
+			SimpleFeatureCollection featureCollection = featureSource.getFeatures();
+			SimpleFeatureIterator featureIterator = featureCollection.features();
+
+			ArrayList<SimpleFeature> simpleFeatures = new ArrayList<SimpleFeature>();
+			while (featureIterator.hasNext())
+				simpleFeatures.add(featureIterator.next());
+
+			featureIterator.close();
+			store.dispose();
+
+			return simpleFeatures;
+
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
+		return null;
 	}
 
 }

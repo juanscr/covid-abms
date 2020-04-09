@@ -1,6 +1,6 @@
 package model;
 
-import cern.jet.random.Gamma;
+import cern.jet.random.Normal;
 import repast.simphony.random.RandomHelper;
 
 public abstract class Probabilities {
@@ -11,10 +11,10 @@ public abstract class Probabilities {
 			{ 60, 69 }, { 70, 79 }, { 80, 121 } };
 
 	// Estimated
-	public static final double INFECTION_PROBABILITY = 0.8;
-	private static final double ALPHA_INCUBATION_TIME = 3.37;
-	private static final double BETA_INCUBATION_TIME = 1.49;
-	private static final double MIN_INCUBATION_TIME = 2.0;
+	public static final double INFECTION_PROBABILITY = 0.35;
+	public static final double ACTIVE_CASE_PROBABILITY = 0.7;
+	private static final double MEAN_INCUBATION_TIME = 5.52 * 24;
+	private static final double STD_INCUBATION_TIME = 2.41 * 24;
 
 	public static double getTriangular(double min, double mode, double max) {
 		double beta = (mode - min) / (max - min);
@@ -41,8 +41,69 @@ public abstract class Probabilities {
 	}
 
 	public static double getRandomIncubationTime() {
-		Gamma gammaDistribution = RandomHelper.createGamma(ALPHA_INCUBATION_TIME, 1 / BETA_INCUBATION_TIME);
-		return (gammaDistribution.nextDouble() + MIN_INCUBATION_TIME) * 24;
+		double t = Math.pow(MEAN_INCUBATION_TIME, 2) + Math.pow(STD_INCUBATION_TIME, 2);
+		double mu = Math.log(Math.pow(MEAN_INCUBATION_TIME, 2) / Math.sqrt(t));
+		double sigma = Math.log(t / Math.pow(MEAN_INCUBATION_TIME, 2));
+		Normal normalDistribution = RandomHelper.createNormal(mu, sigma);
+		double y = normalDistribution.nextDouble();
+		return Math.exp(y);
+	}
+
+	public static PatientType getRandomPatientType() {
+		double r = RandomHelper.nextDoubleFromTo(0, 1);
+		if (r < 0.30) {
+			return PatientType.NO_SYMPTOMS;
+		} else if (r < 0.85) {
+			return PatientType.MODERATE_SYMPTOMS;
+		} else if (r < 0.95) {
+			return PatientType.SEVERE_SYMPTOMS;
+		} else {
+			return PatientType.CRITICAL_SYMPTOMS;
+		}
+	}
+
+	public static boolean isGoingToDie(PatientType patientType) {
+		double r = RandomHelper.nextDoubleFromTo(0, 1);
+		switch (patientType) {
+		case SEVERE_SYMPTOMS:
+			return r < 0.15;
+		case CRITICAL_SYMPTOMS:
+			return r < 0.5;
+		default:
+			return false;
+		}
+	}
+
+	public static boolean isGettingExposed() {
+		double r = RandomHelper.nextDoubleFromTo(0, 1);
+		return r < Probabilities.INFECTION_PROBABILITY;
+	}
+
+	public static boolean isDevelopingActiveCase() {
+		double r = RandomHelper.nextDoubleFromTo(0, 1);
+		return r < Probabilities.ACTIVE_CASE_PROBABILITY;
+	}
+	
+	public static double getRandomTimeToDeath(PatientType patientType) {
+		switch (patientType) {
+		case CRITICAL_SYMPTOMS:
+		case SEVERE_SYMPTOMS:
+			return RandomHelper.nextDoubleFromTo(10, 20) * 24;
+		default:
+			return 24 * 3 * 30;
+		}
+	}
+
+	public static double getRandomTimeToImmune(PatientType patientType) {
+		return 10 * 24;
+	}
+
+	public static double getRandomWakeUpTime() {
+		return RandomHelper.nextDoubleFromTo(4, 8);
+	}
+
+	public static double getRandomReturnToHomeTime() {
+		return RandomHelper.nextDoubleFromTo(16, 19);
 	}
 
 }
