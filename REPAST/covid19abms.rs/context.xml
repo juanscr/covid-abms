@@ -1,6 +1,0 @@
-<context id="covid19ABMS"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
-	<projection type="geography" id="Valle de Aburra" />
-	<projection type="network" id="infectionNetwork" />
-</context>
