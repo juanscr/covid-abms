@@ -6,7 +6,7 @@ import repast.simphony.space.gis.Geography;
 
 public class Border {
 	
-	private Geometry geometry;
+	protected Geometry geometry;
 	
 	public Border(Geometry geometry) {
 		this.geometry = geometry;

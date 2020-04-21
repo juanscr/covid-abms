@@ -10,6 +10,7 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.util.AffineTransformation;
 import geography.Border;
+import geography.Zone;
 import model.Citizen;
 import model.DiseaseStage;
 import model.Heuristics;
@@ -38,16 +39,31 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		AffineTransformation transformation = new AffineTransformation();
 		transformation.scale(2, 2);
 		borderGeometry = transformation.transform(borderGeometry);
+		
+		// Read SIT zones and create list with zones
+		List<SimpleFeature> zonesFeatures = Reader.loadGeometryFromShapefile("../covid/maps/EOD.shp");
+		ArrayList<Zone> zoneList = new ArrayList<Zone>();
+		for (SimpleFeature feature : zonesFeatures) {
+			Geometry zoneGeometry = (MultiPolygon) feature.getDefaultGeometry();
+			zoneGeometry = transformation.transform(zoneGeometry);
+			zoneList.add(new Zone(zoneGeometry, Integer.parseInt((String) feature.getAttribute("SIT_2017"))));
+		}
 
 		// Geography projection
 		GeographyParameters<Object> params = new GeographyParameters<Object>();
 		GeographyFactory geographyFactory = GeographyFactoryFinder.createGeographyFactory(null);
 		Geography<Object> geography = geographyFactory.createGeography("Valle de Aburra", context, params);
 
-		// Add border to context
+		// Add border to context and projection
 		Border border = new Border(borderGeometry);
 		border.setGeometryInGeography(geography);
 		context.add(border);
+		
+		// Add zones to context and projection
+		for (Zone zone : zoneList) {
+			zone.setGeometryInGeography(geography);
+			context.add(zone);
+		}
 
 		// Network projection
 		NetworkBuilder<Object> netBuilder = new NetworkBuilder<Object>("infectionNetwork", context, true);
