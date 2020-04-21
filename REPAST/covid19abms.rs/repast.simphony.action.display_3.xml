@@ -7,6 +7,10 @@
       <string>styles.CitizenStyle</string>
     </entry>
     <entry>
+      <string>geography.Zone</string>
+      <string>styles.BorderStyle</string>
+    </entry>
+    <entry>
       <string>geography.Border</string>
       <string>styles.BorderStyle</string>
     </entry>
@@ -14,6 +18,10 @@
   <editedStyles>
     <entry>
       <string>model.Citizen</string>
+      <null/>
+    </entry>
+    <entry>
+      <string>geography.Zone</string>
       <null/>
     </entry>
     <entry>
@@ -31,12 +39,16 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-1070211992</hashCode>
+    <hashCode>-1151356137</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
       <string>model.Citizen</string>
+      <int>2</int>
+    </entry>
+    <entry>
+      <string>geography.Zone</string>
       <int>1</int>
     </entry>
     <entry>
