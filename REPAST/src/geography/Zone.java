@@ -2,8 +2,6 @@ package geography;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import repast.simphony.space.gis.Geography;
-
 public class Zone extends Border {
 	
 	private int id;

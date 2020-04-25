@@ -1,6 +1,7 @@
 package simulation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.opengis.feature.simple.SimpleFeature;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -49,6 +50,9 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 			zoneList.add(new Zone(zoneGeometry, Integer.parseInt((String) feature.getAttribute("SIT_2017"))));
 		}
 
+		// Read EOD matrix
+		HashMap<String, Object> eod = Reader.loadEODMatrix("../covid/eod_2017.csv");
+		
 		// Geography projection
 		GeographyParameters<Object> params = new GeographyParameters<Object>();
 		GeographyFactory geographyFactory = GeographyFactoryFinder.createGeographyFactory(null);
@@ -115,11 +119,16 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		}
 
 		// Create houses for each family
-		ArrayList<NdPoint> houses = new ArrayList<NdPoint>();
+		HashMap<Zone, ArrayList<NdPoint>> houses = new HashMap<Zone, ArrayList<NdPoint>>();
 		for (Citizen citizen : uniqueFamilies) {
-			Heuristics.createHouse(citizen, houses, geography, borderGeometry);
+			Heuristics.createHouse(citizen, houses, geography, zoneList);
 		}
 
+		// Assign workplaces
+		for (Citizen citizen : citizenList) {
+			Heuristics.assignWorkplace(citizen, eod, zoneList);
+		}
+		
 		return context;
 	}
 

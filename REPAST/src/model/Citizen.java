@@ -1,9 +1,10 @@
 package model;
 
 import java.util.ArrayList;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+
+import geography.Zone;
 import repast.simphony.context.Context;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedulableAction;
@@ -38,9 +39,9 @@ public class Citizen {
 	// Projection attributes
 	private Context<Object> context;
 	private Geography<Object> geography;
-	private Geometry boundary;
 	private NdPoint homeplace;
 	private NdPoint workplace;
+	private Zone zone;
 
 	// Simulation attributes
 	Parameters params;
@@ -58,7 +59,6 @@ public class Citizen {
 		super();
 		this.context = context;
 		this.geography = geography;
-		this.boundary = boundary;
 		this.age = age;
 		this.diseaseStage = stage;
 		this.params = params;
@@ -151,8 +151,20 @@ public class Citizen {
 		this.homeplace = homeplaceLocation;
 	}
 
+	public void setWorkplace(NdPoint workplaceLocation) {
+		this.workplace = workplaceLocation;
+	}
+
 	public int getAge() {
 		return age;
+	}
+
+	public Zone getZone() {
+		return zone;
+	}
+
+	public void setZone(Zone zone) {
+		this.zone = zone;
 	}
 
 	public int isSusceptible() {
@@ -188,7 +200,6 @@ public class Citizen {
 	private void init() {
 		initDisease();
 		dailyRoutine();
-		assignWorkplace();
 	}
 
 	private void initDisease() {
@@ -216,16 +227,11 @@ public class Citizen {
 				ModelParameters.HOURS_IN_DAY, "returnHome");
 	}
 
-	private void assignWorkplace() {
-		// TODO: Assign workplaces referring to EOD
-		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(boundary, 1).get(0);
-		this.workplace = new NdPoint(coordinate.x, coordinate.y);
-	}
-
 	private void travel() {
 		// Geography movement
 		double distance = 2 * RandomHelper.nextDoubleFromTo(0, MAX_MOVEMENT) - MAX_MOVEMENT;
 		double theta = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
+
 		geography.moveByVector(this, distance, theta);
 	}
 
