@@ -39,9 +39,11 @@ public class Citizen {
 	// Projection attributes
 	private Context<Object> context;
 	private Geography<Object> geography;
+	private Geometry geometry;
 	private NdPoint homeplace;
 	private NdPoint workplace;
 	private Zone zone;
+	private GeographyWithin<Object> within;
 
 	// Simulation attributes
 	Parameters params;
@@ -88,11 +90,15 @@ public class Citizen {
 
 	public void relocate(NdPoint destination) {
 		// Geography movement
-		Geometry geometry = geography.getGeometry(this);
 		Coordinate coordinate = geometry.getCoordinate();
 		coordinate.x = destination.getX();
 		coordinate.y = destination.getY();
 		geography.move(this, geometry);
+		
+		if (within == null) {
+			double distance = params.getDouble("infectionRadius");
+			within = new GeographyWithin<Object>(geography, distance, geometry);
+		}
 	}
 
 	public void setExposed() {
@@ -150,6 +156,10 @@ public class Citizen {
 	public void setHomeplace(NdPoint homeplaceLocation) {
 		this.homeplace = homeplaceLocation;
 	}
+	
+	public NdPoint getWorkplace() {
+		return workplace;
+	}
 
 	public void setWorkplace(NdPoint workplaceLocation) {
 		this.workplace = workplaceLocation;
@@ -165,6 +175,10 @@ public class Citizen {
 
 	public void setZone(Zone zone) {
 		this.zone = zone;
+	}
+	
+	public void setGeometry(Geometry geometry) {
+		this.geometry = geometry;
 	}
 
 	public int isSusceptible() {
@@ -231,14 +245,11 @@ public class Citizen {
 		// Geography movement
 		double distance = 2 * RandomHelper.nextDoubleFromTo(0, MAX_MOVEMENT) - MAX_MOVEMENT;
 		double theta = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
-
 		geography.moveByVector(this, distance, theta);
 	}
 
 	private void infect() {
-		double distance = params.getDouble("infectionRadius");
-		Geometry citizenGeometry = geography.getGeometry(this);
-		GeographyWithin<Object> within = new GeographyWithin<Object>(geography, distance, citizenGeometry);
+		System.out.println("Empecé");
 		for (Object obj : within.query()) {
 			if (obj instanceof Citizen) {
 				Citizen citizen = (Citizen) obj;
@@ -248,6 +259,7 @@ public class Citizen {
 				}
 			}
 		}
+		System.out.println("Terminé");
 	}
 
 	private void assignPatientType() {

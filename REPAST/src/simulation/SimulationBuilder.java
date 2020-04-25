@@ -104,9 +104,11 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 				citizenList.size());
 		GeometryFactory geometryFactory = new GeometryFactory();
 		for (int i = 0; i < agentCoordinates.size(); i++) {
+			Citizen citizen = citizenList.get(i);
 			Coordinate coordinate = agentCoordinates.get(i);
 			Point pointAgent = geometryFactory.createPoint(coordinate);
-			geography.move(citizenList.get(i), pointAgent);
+			geography.move(citizen, pointAgent);
+			citizen.setGeometry(geography.getGeometry(citizen));
 		}
 
 		// Create families
