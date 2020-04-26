@@ -79,9 +79,16 @@ public class Reader {
 			BufferedReader csvReader = new BufferedReader(new FileReader(filename));
 			String line;
 			String[] data;
+			boolean first = true;
+			String sep = ";";
 			int i = 0;
 			while ((line = csvReader.readLine()) != null) {
-				data = line.split(";");
+				if (first) {
+					if (line.charAt(0) == ',')
+						sep = ",";
+					first = false;
+				}
+				data = line.split(sep);
 				if (i != 0) {
 					rows.put(Integer.parseInt(data[0]), i - 1);
 					walks.add(Double.parseDouble(data[i]));
