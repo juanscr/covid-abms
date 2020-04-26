@@ -1,8 +1,12 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+
+import geography.Zone;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.continuous.NdPoint;
@@ -107,24 +111,44 @@ public abstract class Heuristics {
 			member.setFamily(family);
 	}
 
-	public static void createHouse(Citizen citizen, ArrayList<NdPoint> houses, Geography<Object> geography,
-			Geometry boundary) {
-		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(boundary, 1).get(0);
+	public static void createHouse(Citizen citizen, HashMap<Zone, ArrayList<NdPoint>> houses,
+			Geography<Object> geography, ArrayList<Zone> zoneList) {
+
+		// Select random zone
+		int zoneIndex = RandomHelper.nextIntFromTo(0, zoneList.size()-1);
+		Zone selectedZone = zoneList.get(zoneIndex);
+
+		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(selectedZone.getGeometry(), 1).get(0);
 		NdPoint houseSelected = new NdPoint(coordinate.x, coordinate.y);
 
 		// Have disjointed houses
-		for (NdPoint house : houses) {
-			double distance = Math.pow((house.getX() - houseSelected.getX()), 2);
-			distance += Math.pow((house.getY() - houseSelected.getY()), 2);
-			while (Math.sqrt(distance) < 2 * houseRadius) {
-				coordinate = GeometryUtil.generateRandomPointsInPolygon(boundary, 1).get(0);
-				houseSelected = new NdPoint(coordinate.x, coordinate.y);
-				distance = Math.pow((house.getX() - houseSelected.getX()), 2);
+		if (houses.containsKey(selectedZone)) {
+			int i = 0;
+			while (i < houses.get(selectedZone).size()) {
+				NdPoint house = houses.get(selectedZone).get(i);
+				double distance = Math.pow((house.getX() - houseSelected.getX()), 2);
 				distance += Math.pow((house.getY() - houseSelected.getY()), 2);
+				int count = 0;
+				i++;
+				while (Math.sqrt(distance) < 2 * houseRadius) {
+					coordinate = GeometryUtil.generateRandomPointsInPolygon(selectedZone.getGeometry(), 1).get(0);
+					houseSelected = new NdPoint(coordinate.x, coordinate.y);
+					distance = Math.pow((house.getX() - houseSelected.getX()), 2);
+					distance += Math.pow((house.getY() - houseSelected.getY()), 2);
+					if (count == 10) {
+						i = 0;
+						zoneIndex = RandomHelper.nextIntFromTo(0, zoneList.size());
+						selectedZone = zoneList.get(zoneIndex);
+						break;
+					}
+					count++;
+				}
 			}
+		} else {
+			houses.put(selectedZone, new ArrayList<NdPoint>());
 		}
 
-		houses.add(houseSelected);
+		houses.get(selectedZone).add(houseSelected);
 
 		// Select house for family
 		double positionX;
@@ -134,7 +158,46 @@ public abstract class Heuristics {
 			positionX = houseSelected.getX() - houseRadius / 2 + RandomHelper.nextDoubleFromTo(0, houseRadius);
 			positionY = houseSelected.getY() - houseRadius / 2 + RandomHelper.nextDoubleFromTo(0, houseRadius);
 			citizenFamily.relocate(new NdPoint(positionX, positionY));
+			citizenFamily.setZone(selectedZone);
 		}
+	}
+
+	public static void assignWorkplace(Citizen citizen, HashMap<String, Object> eod, ArrayList<Zone> zoneList) {
+		int zoneId = citizen.getZone().getId();
+		HashMap<Integer, Integer> rows = (HashMap<Integer, Integer>) eod.get("rows");
+		
+		if (rows.containsKey(zoneId)) {
+			int row = rows.get(zoneId);
+			ArrayList<ArrayList<Double>> eodMatrix = (ArrayList<ArrayList<Double>>) eod.get("eod");
+			ArrayList<Double> travels = eodMatrix.get(row);
+	
+			int player1 = RandomHelper.nextIntFromTo(0, travels.size()-1);
+			for (int i = 0; i < 10; i++) {
+				int player2 = RandomHelper.nextIntFromTo(0, travels.size()-1);
+				double decision = RandomHelper.nextDoubleFromTo(0, 1);
+				double sum = travels.get(player1) + travels.get(player2);
+				if (travels.get(player1) < travels.get(player2)) {
+					int temp = player1;
+					player1 = player2;
+					player2 = temp;
+				}
+				if (decision >= travels.get(player1)/sum) {
+					player1 = player2;
+				}
+			}
+			
+			HashMap<Integer, Integer> columns = (HashMap<Integer, Integer>) eod.get("columns");
+			int id = columns.get(player1);
+			for (Zone zone: zoneList) {
+				if (zone.getId() == id) {
+					Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(zone.getGeometry(), 1).get(0);
+					citizen.setWorkplace(new NdPoint(coordinate.x, coordinate.y));
+					return;
+				}
+			}
+		}
+		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(citizen.getZone().getGeometry(), 1).get(0);
+		citizen.setWorkplace(new NdPoint(coordinate.x, coordinate.y));
 	}
 
 }

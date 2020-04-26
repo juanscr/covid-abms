@@ -1,6 +1,8 @@
 package simulation;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import org.opengis.feature.simple.SimpleFeature;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -9,11 +11,13 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.util.AffineTransformation;
+import datasource.DailyNewCases;
 import geography.Border;
 import geography.Zone;
 import model.Citizen;
 import model.DiseaseStage;
 import model.Heuristics;
+import model.ModelParameters;
 import model.Probabilities;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactory;
@@ -39,14 +43,34 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		AffineTransformation transformation = new AffineTransformation();
 		transformation.scale(2, 2);
 		borderGeometry = transformation.transform(borderGeometry);
+
+		// Read EOD matrix
+		HashMap<String, Object> eod = Reader.loadEODMatrix("../covid/eod_2017.csv");
+		HashMap<String, Object> walks = Reader.loadEODWalksMatrix("../covid/eod_2017_walks.csv");
 		
 		// Read SIT zones and create list with zones
 		List<SimpleFeature> zonesFeatures = Reader.loadGeometryFromShapefile("../covid/maps/EOD.shp");
 		ArrayList<Zone> zoneList = new ArrayList<Zone>();
+		HashMap<Integer, Integer> rows = (HashMap<Integer, Integer>) walks.get("rows");
+		ArrayList<Double> averageWalks = (ArrayList<Double>) walks.get("walks");
+		double maxWalk = Collections.max(averageWalks);
+		double sumWalks = 0;
+		for (Double d : averageWalks) {
+			sumWalks += d;
+		}
+		double averageWalk = sumWalks / averageWalks.size();
 		for (SimpleFeature feature : zonesFeatures) {
 			Geometry zoneGeometry = (MultiPolygon) feature.getDefaultGeometry();
 			zoneGeometry = transformation.transform(zoneGeometry);
-			zoneList.add(new Zone(zoneGeometry, Integer.parseInt((String) feature.getAttribute("SIT_2017"))));
+			int id = Integer.parseInt((String) feature.getAttribute("SIT_2017"));
+			double walk = 0;
+			if (rows.containsKey(id)) {
+				walk = averageWalks.get(rows.get(id));
+			} else {
+				walk = averageWalk;
+			}
+			double zoneWalk = ModelParameters.MAX_MOVEMENT_IN_DESTINATION * walk/maxWalk;
+			zoneList.add(new Zone(zoneGeometry, id, zoneWalk));
 		}
 
 		// Geography projection
@@ -72,18 +96,26 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		// Get simulation parameters
 		Parameters simParams = RunEnvironment.getInstance().getParameters();
 
+		// Observer
+		DailyNewCases newCasesDataSource = new DailyNewCases();
+		context.add(newCasesDataSource);
+		
 		// Susceptible citizens
 		int susceptibleCount = simParams.getInteger("susceptibleCount");
 		for (int i = 0; i < susceptibleCount; i++) {
 			int age = Probabilities.getRandomAge();
-			context.add(new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.SUSCEPTIBLE));
+			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.SUSCEPTIBLE);
+			citizen.attach(newCasesDataSource);
+			context.add(citizen);
 		}
 
 		// Infected citizens
 		int infectedCount = simParams.getInteger("infectedCount");
 		for (int i = 0; i < infectedCount; i++) {
 			int age = Probabilities.getRandomAge();
-			context.add(new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.INFECTED));
+			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.INFECTED);
+			citizen.attach(newCasesDataSource);
+			context.add(citizen);
 		}
 
 		// Create citizen list
@@ -100,9 +132,11 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 				citizenList.size());
 		GeometryFactory geometryFactory = new GeometryFactory();
 		for (int i = 0; i < agentCoordinates.size(); i++) {
+			Citizen citizen = citizenList.get(i);
 			Coordinate coordinate = agentCoordinates.get(i);
 			Point pointAgent = geometryFactory.createPoint(coordinate);
-			geography.move(citizenList.get(i), pointAgent);
+			geography.move(citizen, pointAgent);
+			citizen.setGeometry(geography.getGeometry(citizen));
 		}
 
 		// Create families
@@ -115,11 +149,18 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		}
 
 		// Create houses for each family
-		ArrayList<NdPoint> houses = new ArrayList<NdPoint>();
+		HashMap<Zone, ArrayList<NdPoint>> houses = new HashMap<Zone, ArrayList<NdPoint>>();
 		for (Citizen citizen : uniqueFamilies) {
-			Heuristics.createHouse(citizen, houses, geography, borderGeometry);
+			Heuristics.createHouse(citizen, houses, geography, zoneList);
 		}
 
+		// Assign workplaces
+		for (Citizen citizen : citizenList) {
+			Heuristics.assignWorkplace(citizen, eod, zoneList);
+		}
+
+		RunEnvironment.getInstance().endAt(ModelParameters.SIMULATION_END);
+		
 		return context;
 	}
 

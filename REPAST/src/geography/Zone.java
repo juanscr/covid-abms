@@ -2,19 +2,23 @@ package geography;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import repast.simphony.space.gis.Geography;
-
 public class Zone extends Border {
-	
+
 	private int id;
-	
-	public Zone(Geometry geometry, int id) {
+	private double walkAverage;
+
+	public Zone(Geometry geometry, int id, double walkAverage) {
 		super(geometry);
 		this.id = id;
+		this.walkAverage = walkAverage;
+	}
+
+	public int getId() {
+		return id;
 	}
 	
-	public int getId() {
-		return this.id;
+	public double getWalkAverage() {
+		return walkAverage;
 	}
 
 }

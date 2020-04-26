@@ -83,7 +83,7 @@ public abstract class Probabilities {
 		double r = RandomHelper.nextDoubleFromTo(0, 1);
 		return r < Probabilities.ACTIVE_CASE_PROBABILITY;
 	}
-	
+
 	public static double getRandomTimeToDeath(PatientType patientType) {
 		switch (patientType) {
 		case CRITICAL_SYMPTOMS:

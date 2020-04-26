@@ -1,14 +1,13 @@
 package model;
 
 import java.util.ArrayList;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import geography.Zone;
 import repast.simphony.context.Context;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedulableAction;
 import repast.simphony.engine.schedule.ISchedule;
-import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.query.space.gis.GeographyWithin;
 import repast.simphony.random.RandomHelper;
@@ -17,7 +16,7 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import simulation.Scheduler;
 
-public class Citizen {
+public class Citizen implements Subject {
 
 	// Personal attributes
 	private int age;
@@ -38,39 +37,38 @@ public class Citizen {
 	// Projection attributes
 	private Context<Object> context;
 	private Geography<Object> geography;
-	private Geometry boundary;
+	private Geometry geometry;
 	private NdPoint homeplace;
 	private NdPoint workplace;
+	private Zone zone;
+	private GeographyWithin<Object> within;
 
 	// Simulation attributes
-	Parameters params;
+	private Parameters params;
+	private ArrayList<Observer> observers;
 
 	// Event attributes
 	private ISchedulableAction stepAction;
 	private ISchedulableAction wakeUpAction;
 	private ISchedulableAction returnHomeAction;
 
-	// Movement attributes
-	private static final int MAX_MOVEMENT = 1000;
-
 	public Citizen(Context<Object> context, Geography<Object> geography, Geometry boundary, Parameters params, int age,
 			DiseaseStage stage) {
 		super();
 		this.context = context;
 		this.geography = geography;
-		this.boundary = boundary;
 		this.age = age;
 		this.diseaseStage = stage;
 		this.params = params;
 		this.age = age;
 		this.diseaseStage = stage;
 		this.family = new ArrayList<Citizen>();
+		this.observers = new ArrayList<Observer>();
 		init();
 	}
 
 	public void step() {
-		if (!atHome)
-			travel();
+		travel();
 		if (diseaseStage == DiseaseStage.INFECTED) {
 			infect();
 		}
@@ -88,11 +86,15 @@ public class Citizen {
 
 	public void relocate(NdPoint destination) {
 		// Geography movement
-		Geometry geometry = geography.getGeometry(this);
 		Coordinate coordinate = geometry.getCoordinate();
 		coordinate.x = destination.getX();
 		coordinate.y = destination.getY();
 		geography.move(this, geometry);
+
+		if (within == null) {
+			double distance = params.getDouble("infectionRadius");
+			within = new GeographyWithin<Object>(geography, distance, geometry);
+		}
 	}
 
 	public void setExposed() {
@@ -107,6 +109,7 @@ public class Citizen {
 	}
 
 	public void setInfected() {
+		notifyNewCase();
 		diseaseStage = DiseaseStage.INFECTED;
 		boolean isGoingToDie = Probabilities.isGoingToDie(patientType);
 		if (isGoingToDie) {
@@ -125,6 +128,23 @@ public class Citizen {
 	public void kill() {
 		diseaseStage = DiseaseStage.DEAD;
 		removeScheduledEvents();
+	}
+
+	@Override
+	public void attach(Observer o) {
+		observers.add(o);
+	}
+
+	@Override
+	public void detach(Observer o) {
+		observers.remove(o);
+	}
+
+	@Override
+	public void notifyNewCase() {
+		for (Observer o : observers) {
+			o.reportNewCase(this);
+		}
 	}
 
 	public DiseaseStage getDiseaseStage() {
@@ -151,8 +171,28 @@ public class Citizen {
 		this.homeplace = homeplaceLocation;
 	}
 
+	public NdPoint getWorkplace() {
+		return workplace;
+	}
+
+	public void setWorkplace(NdPoint workplaceLocation) {
+		this.workplace = workplaceLocation;
+	}
+
 	public int getAge() {
 		return age;
+	}
+
+	public Zone getZone() {
+		return zone;
+	}
+
+	public void setZone(Zone zone) {
+		this.zone = zone;
+	}
+
+	public void setGeometry(Geometry geometry) {
+		this.geometry = geometry;
 	}
 
 	public int isSusceptible() {
@@ -188,7 +228,6 @@ public class Citizen {
 	private void init() {
 		initDisease();
 		dailyRoutine();
-		assignWorkplace();
 	}
 
 	private void initDisease() {
@@ -216,23 +255,17 @@ public class Citizen {
 				ModelParameters.HOURS_IN_DAY, "returnHome");
 	}
 
-	private void assignWorkplace() {
-		// TODO: Assign workplaces referring to EOD
-		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(boundary, 1).get(0);
-		this.workplace = new NdPoint(coordinate.x, coordinate.y);
-	}
-
 	private void travel() {
 		// Geography movement
-		double distance = 2 * RandomHelper.nextDoubleFromTo(0, MAX_MOVEMENT) - MAX_MOVEMENT;
+		double distance = 2 * RandomHelper.nextDoubleFromTo(0, zone.getWalkAverage()) - zone.getWalkAverage();
+		if (!atHome)
+			distance = 2 * RandomHelper.nextDoubleFromTo(0, ModelParameters.MAX_MOVEMENT_IN_DESTINATION)
+					- ModelParameters.MAX_MOVEMENT_IN_DESTINATION;
 		double theta = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
 		geography.moveByVector(this, distance, theta);
 	}
 
 	private void infect() {
-		double distance = params.getDouble("infectionRadius");
-		Geometry citizenGeometry = geography.getGeometry(this);
-		GeographyWithin<Object> within = new GeographyWithin<Object>(geography, distance, citizenGeometry);
 		for (Object obj : within.query()) {
 			if (obj instanceof Citizen) {
 				Citizen citizen = (Citizen) obj;
