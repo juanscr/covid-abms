@@ -2,6 +2,6 @@ package model;
 
 public interface Observer {
 	
-	public void reportNewCase();
+	public void reportNewCase(Citizen citizen);
 
 }

@@ -1,6 +1,7 @@
 package simulation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.opengis.feature.simple.SimpleFeature;
@@ -10,13 +11,13 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.util.AffineTransformation;
-
 import datasource.DailyNewCases;
 import geography.Border;
 import geography.Zone;
 import model.Citizen;
 import model.DiseaseStage;
 import model.Heuristics;
+import model.ModelParameters;
 import model.Probabilities;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactory;
@@ -42,19 +43,36 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		AffineTransformation transformation = new AffineTransformation();
 		transformation.scale(2, 2);
 		borderGeometry = transformation.transform(borderGeometry);
+
+		// Read EOD matrix
+		HashMap<String, Object> eod = Reader.loadEODMatrix("../covid/eod_2017.csv");
+		HashMap<String, Object> walks = Reader.loadEODWalksMatrix("../covid/eod_2017_walks.csv");
 		
 		// Read SIT zones and create list with zones
 		List<SimpleFeature> zonesFeatures = Reader.loadGeometryFromShapefile("../covid/maps/EOD.shp");
 		ArrayList<Zone> zoneList = new ArrayList<Zone>();
+		HashMap<Integer, Integer> rows = (HashMap<Integer, Integer>) walks.get("rows");
+		ArrayList<Double> averageWalks = (ArrayList<Double>) walks.get("walks");
+		double maxWalk = Collections.max(averageWalks);
+		double sumWalks = 0;
+		for (Double d : averageWalks) {
+			sumWalks += d;
+		}
+		double averageWalk = sumWalks / averageWalks.size();
 		for (SimpleFeature feature : zonesFeatures) {
 			Geometry zoneGeometry = (MultiPolygon) feature.getDefaultGeometry();
 			zoneGeometry = transformation.transform(zoneGeometry);
-			zoneList.add(new Zone(zoneGeometry, Integer.parseInt((String) feature.getAttribute("SIT_2017"))));
+			int id = Integer.parseInt((String) feature.getAttribute("SIT_2017"));
+			double walk = 0;
+			if (rows.containsKey(id)) {
+				walk = averageWalks.get(rows.get(id));
+			} else {
+				walk = averageWalk;
+			}
+			double zoneWalk = ModelParameters.MAX_MOVEMENT_IN_DESTINATION * walk/maxWalk;
+			zoneList.add(new Zone(zoneGeometry, id, zoneWalk));
 		}
 
-		// Read EOD matrix
-		HashMap<String, Object> eod = Reader.loadEODMatrix("../covid/eod_2017.csv");
-		
 		// Geography projection
 		GeographyParameters<Object> params = new GeographyParameters<Object>();
 		GeographyFactory geographyFactory = GeographyFactoryFinder.createGeographyFactory(null);
@@ -140,6 +158,8 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		for (Citizen citizen : citizenList) {
 			Heuristics.assignWorkplace(citizen, eod, zoneList);
 		}
+
+		RunEnvironment.getInstance().endAt(ModelParameters.SIMULATION_END);
 		
 		return context;
 	}

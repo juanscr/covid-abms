@@ -52,9 +52,6 @@ public class Citizen implements Subject {
 	private ISchedulableAction wakeUpAction;
 	private ISchedulableAction returnHomeAction;
 
-	// Movement attributes
-	private static final int MAX_MOVEMENT = 1000;
-
 	public Citizen(Context<Object> context, Geography<Object> geography, Geometry boundary, Parameters params, int age,
 			DiseaseStage stage) {
 		super();
@@ -71,8 +68,7 @@ public class Citizen implements Subject {
 	}
 
 	public void step() {
-		if (!atHome)
-			travel();
+		travel();
 		if (diseaseStage == DiseaseStage.INFECTED) {
 			infect();
 		}
@@ -147,7 +143,7 @@ public class Citizen implements Subject {
 	@Override
 	public void notifyNewCase() {
 		for (Observer o : observers) {
-			o.reportNewCase();
+			o.reportNewCase(this);
 		}
 	}
 
@@ -261,7 +257,10 @@ public class Citizen implements Subject {
 
 	private void travel() {
 		// Geography movement
-		double distance = 2 * RandomHelper.nextDoubleFromTo(0, MAX_MOVEMENT) - MAX_MOVEMENT;
+		double distance = 2 * RandomHelper.nextDoubleFromTo(0, zone.getWalkAverage()) - zone.getWalkAverage();
+		if (!atHome)
+			distance = 2 * RandomHelper.nextDoubleFromTo(0, ModelParameters.MAX_MOVEMENT_IN_DESTINATION)
+					- ModelParameters.MAX_MOVEMENT_IN_DESTINATION;
 		double theta = RandomHelper.nextDoubleFromTo(0, 2 * Math.PI);
 		geography.moveByVector(this, distance, theta);
 	}

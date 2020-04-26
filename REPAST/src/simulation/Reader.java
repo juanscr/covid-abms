@@ -49,12 +49,12 @@ public class Reader {
 				data = line.split(";");
 				if (i == 0) {
 					for (int j = 1; j < data.length; j++) {
-						columns.put(j-1, Integer.parseInt(data[j]));
+						columns.put(j - 1, Integer.parseInt(data[j]));
 					}
 				} else {
-					rows.put(Integer.parseInt(data[0]), i-1);
+					rows.put(Integer.parseInt(data[0]), i - 1);
 					ArrayList<Double> row = new ArrayList<Double>();
-					for(int j = 1; j < data.length; j++) {
+					for (int j = 1; j < data.length; j++) {
 						row.add(Double.parseDouble(data[j]));
 					}
 					eod.add(row);
@@ -64,6 +64,32 @@ public class Reader {
 			out.put("rows", rows);
 			out.put("columns", columns);
 			out.put("eod", eod);
+			csvReader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return out;
+	}
+
+	public static HashMap<String, Object> loadEODWalksMatrix(String filename) {
+		HashMap<String, Object> out = new HashMap<String, Object>();
+		HashMap<Integer, Integer> rows = new HashMap<Integer, Integer>();
+		ArrayList<Double> walks = new ArrayList<Double>();
+		try {
+			BufferedReader csvReader = new BufferedReader(new FileReader(filename));
+			String line;
+			String[] data;
+			int i = 0;
+			while ((line = csvReader.readLine()) != null) {
+				data = line.split(";");
+				if (i != 0) {
+					rows.put(Integer.parseInt(data[0]), i - 1);
+					walks.add(Double.parseDouble(data[i]));
+				}
+				i++;
+			}
+			out.put("rows", rows);
+			out.put("walks", walks);
 			csvReader.close();
 		} catch (IOException e) {
 			e.printStackTrace();
