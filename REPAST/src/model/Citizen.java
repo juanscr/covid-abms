@@ -3,13 +3,11 @@ package model;
 import java.util.ArrayList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-
 import geography.Zone;
 import repast.simphony.context.Context;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedulableAction;
 import repast.simphony.engine.schedule.ISchedule;
-import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.query.space.gis.GeographyWithin;
 import repast.simphony.random.RandomHelper;
@@ -18,7 +16,7 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import simulation.Scheduler;
 
-public class Citizen {
+public class Citizen implements Subject {
 
 	// Personal attributes
 	private int age;
@@ -46,7 +44,8 @@ public class Citizen {
 	private GeographyWithin<Object> within;
 
 	// Simulation attributes
-	Parameters params;
+	private Parameters params;
+	private ArrayList<Observer> observers;
 
 	// Event attributes
 	private ISchedulableAction stepAction;
@@ -67,6 +66,7 @@ public class Citizen {
 		this.age = age;
 		this.diseaseStage = stage;
 		this.family = new ArrayList<Citizen>();
+		this.observers = new ArrayList<Observer>();
 		init();
 	}
 
@@ -94,7 +94,7 @@ public class Citizen {
 		coordinate.x = destination.getX();
 		coordinate.y = destination.getY();
 		geography.move(this, geometry);
-		
+
 		if (within == null) {
 			double distance = params.getDouble("infectionRadius");
 			within = new GeographyWithin<Object>(geography, distance, geometry);
@@ -113,6 +113,7 @@ public class Citizen {
 	}
 
 	public void setInfected() {
+		notifyNewCase();
 		diseaseStage = DiseaseStage.INFECTED;
 		boolean isGoingToDie = Probabilities.isGoingToDie(patientType);
 		if (isGoingToDie) {
@@ -131,6 +132,23 @@ public class Citizen {
 	public void kill() {
 		diseaseStage = DiseaseStage.DEAD;
 		removeScheduledEvents();
+	}
+
+	@Override
+	public void attach(Observer o) {
+		observers.add(o);
+	}
+
+	@Override
+	public void detach(Observer o) {
+		observers.remove(o);
+	}
+
+	@Override
+	public void notifyNewCase() {
+		for (Observer o : observers) {
+			o.reportNewCase();
+		}
 	}
 
 	public DiseaseStage getDiseaseStage() {
@@ -156,7 +174,7 @@ public class Citizen {
 	public void setHomeplace(NdPoint homeplaceLocation) {
 		this.homeplace = homeplaceLocation;
 	}
-	
+
 	public NdPoint getWorkplace() {
 		return workplace;
 	}
@@ -176,7 +194,7 @@ public class Citizen {
 	public void setZone(Zone zone) {
 		this.zone = zone;
 	}
-	
+
 	public void setGeometry(Geometry geometry) {
 		this.geometry = geometry;
 	}
@@ -249,7 +267,6 @@ public class Citizen {
 	}
 
 	private void infect() {
-		System.out.println("Empecé");
 		for (Object obj : within.query()) {
 			if (obj instanceof Citizen) {
 				Citizen citizen = (Citizen) obj;
@@ -259,7 +276,6 @@ public class Citizen {
 				}
 			}
 		}
-		System.out.println("Terminé");
 	}
 
 	private void assignPatientType() {

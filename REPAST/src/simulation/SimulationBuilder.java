@@ -10,6 +10,8 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.util.AffineTransformation;
+
+import datasource.DailyNewCases;
 import geography.Border;
 import geography.Zone;
 import model.Citizen;
@@ -76,18 +78,26 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		// Get simulation parameters
 		Parameters simParams = RunEnvironment.getInstance().getParameters();
 
+		// Observer
+		DailyNewCases newCasesDataSource = new DailyNewCases();
+		context.add(newCasesDataSource);
+		
 		// Susceptible citizens
 		int susceptibleCount = simParams.getInteger("susceptibleCount");
 		for (int i = 0; i < susceptibleCount; i++) {
 			int age = Probabilities.getRandomAge();
-			context.add(new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.SUSCEPTIBLE));
+			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.SUSCEPTIBLE);
+			citizen.attach(newCasesDataSource);
+			context.add(citizen);
 		}
 
 		// Infected citizens
 		int infectedCount = simParams.getInteger("infectedCount");
 		for (int i = 0; i < infectedCount; i++) {
 			int age = Probabilities.getRandomAge();
-			context.add(new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.INFECTED));
+			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.INFECTED);
+			citizen.attach(newCasesDataSource);
+			context.add(citizen);
 		}
 
 		// Create citizen list
