@@ -1,5 +1,7 @@
 package model;
 
+import java.util.Arrays;
+
 import cern.jet.random.Normal;
 import repast.simphony.random.RandomHelper;
 
@@ -9,6 +11,12 @@ public abstract class Probabilities {
 	private static double ageProbs[] = { 14.43, 16.9, 17.28, 14.87, 12.21, 11.04, 7.28, 3.93, 2.06 };
 	private static int ageRanges[][] = { { 0, 9 }, { 10, 19 }, { 20, 29 }, { 30, 39 }, { 40, 49 }, { 50, 59 },
 			{ 60, 69 }, { 70, 79 }, { 80, 121 } };
+	
+	// Work proportions
+	public static int[] dailyTravels = {335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620, 245991, 
+			                            322370, 318179, 313987, 327201, 309527, 395493, 613719, 466570, 210368, 128377, 
+			                            93656, 60591, 23699};
+	public static final double DAY_SHIFT_PROBABILITY = 0.7;
 
 	// Estimated
 	public static final double INFECTION_PROBABILITY = 0.35;
@@ -98,12 +106,57 @@ public abstract class Probabilities {
 		return 10 * 24;
 	}
 
-	public static double getRandomWakeUpTime() {
-		return RandomHelper.nextDoubleFromTo(4, 8);
+	public static double getRandomWakeUpTime(boolean dayShift) {
+		int[] travels;
+		int displacement;
+		if (dayShift) {
+			travels = Arrays.copyOfRange(dailyTravels, 4, 10);
+			displacement = 3;
+		}
+		else {
+			travels = Arrays.copyOfRange(dailyTravels, 18, 22);
+			displacement = 17;
+		}
+		int sum = 0;
+		for (int num : travels)
+			sum += num;
+		
+		double choice = RandomHelper.nextDoubleFromTo(0, 1);
+		int acum = 0;
+		for (int i = 0; i < travels.length; i++) {
+			acum += travels[i];
+			if (choice <= acum / sum) {
+				return RandomHelper.nextDoubleFromTo(0, 1) +  i +  displacement;
+			}
+		}
+		return 0;
 	}
 
-	public static double getRandomReturnToHomeTime() {
-		return RandomHelper.nextDoubleFromTo(16, 19);
+	public static double getRandomReturnToHomeTime(boolean dayShift) {
+		int[] travels;
+		int displacement;
+		if (dayShift) {
+			travels = Arrays.copyOfRange(dailyTravels, 13, 19);
+			displacement = 12;
+		}
+		else {
+			travels = Arrays.copyOfRange(dailyTravels, 1, 6);
+			displacement = 1;
+		}
+
+		int sum = 0;
+		for (int num : travels)
+			sum += num;
+		
+		double choice = RandomHelper.nextDoubleFromTo(0, 1);
+		int acum = 0;
+		for (int i = 0; i < travels.length; i++) {
+			acum += travels[i];
+			if (choice <= acum / sum) {
+				return RandomHelper.nextDoubleFromTo(0, 1) +  i +  displacement;
+			}
+		}
+		return 0;
 	}
 
 }

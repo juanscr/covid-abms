@@ -24,6 +24,7 @@ public class Citizen implements Subject {
 
 	// Routine attributes
 	private boolean atHome;
+	private boolean dayShift;
 	private double wakeUpTime;
 	private double returnToHomeTime;
 
@@ -227,6 +228,7 @@ public class Citizen implements Subject {
 
 	private void init() {
 		initDisease();
+		selectShift();
 		dailyRoutine();
 	}
 
@@ -243,11 +245,16 @@ public class Citizen implements Subject {
 			break;
 		}
 	}
+	
+	private void selectShift() {
+		double random = RandomHelper.nextDoubleFromTo(0, 1);
+		dayShift = random < Probabilities.DAY_SHIFT_PROBABILITY;
+	}
 
 	private void dailyRoutine() {
 		atHome = true;
-		wakeUpTime = Probabilities.getRandomWakeUpTime();
-		returnToHomeTime = Probabilities.getRandomReturnToHomeTime();
+		wakeUpTime = Probabilities.getRandomWakeUpTime(this.dayShift);
+		returnToHomeTime = Probabilities.getRandomReturnToHomeTime(this.dayShift);
 		stepAction = Scheduler.getInstance().scheduleRecurringEvent(1, this, 1, "step");
 		wakeUpAction = Scheduler.getInstance().scheduleRecurringEvent(wakeUpTime, this, ModelParameters.HOURS_IN_DAY,
 				"wakeUp");
