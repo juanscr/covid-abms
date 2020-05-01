@@ -2,10 +2,7 @@ package model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-
 import geography.Zone;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.random.RandomHelper;
@@ -106,16 +103,16 @@ public abstract class Heuristics {
 				}
 			}
 		}
-
-		for (Citizen member : family)
+		for (Citizen member : family) {
 			member.setFamily(family);
+		}
 	}
 
 	public static void createHouse(Citizen citizen, HashMap<Zone, ArrayList<NdPoint>> houses,
 			Geography<Object> geography, ArrayList<Zone> zoneList) {
 
 		// Select random zone
-		int zoneIndex = RandomHelper.nextIntFromTo(0, zoneList.size()-1);
+		int zoneIndex = RandomHelper.nextIntFromTo(0, zoneList.size() - 1);
 		Zone selectedZone = zoneList.get(zoneIndex);
 
 		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(selectedZone.getGeometry(), 1).get(0);
@@ -165,15 +162,15 @@ public abstract class Heuristics {
 	public static void assignWorkplace(Citizen citizen, HashMap<String, Object> eod, ArrayList<Zone> zoneList) {
 		int zoneId = citizen.getZone().getId();
 		HashMap<Integer, Integer> rows = (HashMap<Integer, Integer>) eod.get("rows");
-		
+
 		if (rows.containsKey(zoneId)) {
 			int row = rows.get(zoneId);
 			ArrayList<ArrayList<Double>> eodMatrix = (ArrayList<ArrayList<Double>>) eod.get("eod");
 			ArrayList<Double> travels = eodMatrix.get(row);
-	
-			int player1 = RandomHelper.nextIntFromTo(0, travels.size()-1);
+
+			int player1 = RandomHelper.nextIntFromTo(0, travels.size() - 1);
 			for (int i = 0; i < 10; i++) {
-				int player2 = RandomHelper.nextIntFromTo(0, travels.size()-1);
+				int player2 = RandomHelper.nextIntFromTo(0, travels.size() - 1);
 				double decision = RandomHelper.nextDoubleFromTo(0, 1);
 				double sum = travels.get(player1) + travels.get(player2);
 				if (travels.get(player1) < travels.get(player2)) {
@@ -181,14 +178,14 @@ public abstract class Heuristics {
 					player1 = player2;
 					player2 = temp;
 				}
-				if (decision >= travels.get(player1)/sum) {
+				if (decision >= travels.get(player1) / sum) {
 					player1 = player2;
 				}
 			}
-			
+
 			HashMap<Integer, Integer> columns = (HashMap<Integer, Integer>) eod.get("columns");
 			int id = columns.get(player1);
-			for (Zone zone: zoneList) {
+			for (Zone zone : zoneList) {
 				if (zone.getId() == id) {
 					Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(zone.getGeometry(), 1).get(0);
 					citizen.setWorkplace(new NdPoint(coordinate.x, coordinate.y));

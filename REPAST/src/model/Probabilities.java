@@ -2,6 +2,7 @@ package model;
 
 import java.util.Arrays;
 
+import cern.jet.random.Gamma;
 import cern.jet.random.Normal;
 import repast.simphony.random.RandomHelper;
 
@@ -11,18 +12,18 @@ public abstract class Probabilities {
 	private static double ageProbs[] = { 14.43, 16.9, 17.28, 14.87, 12.21, 11.04, 7.28, 3.93, 2.06 };
 	private static int ageRanges[][] = { { 0, 9 }, { 10, 19 }, { 20, 29 }, { 30, 39 }, { 40, 49 }, { 50, 59 },
 			{ 60, 69 }, { 70, 79 }, { 80, 121 } };
-	
+
 	// Work proportions
-	public static int[] dailyTravels = {335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620, 245991, 
-			                            322370, 318179, 313987, 327201, 309527, 395493, 613719, 466570, 210368, 128377, 
-			                            93656, 60591, 23699};
+	public static int[] dailyTravels = { 335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620, 245991,
+			322370, 318179, 313987, 327201, 309527, 395493, 613719, 466570, 210368, 128377, 93656, 60591, 23699 };
 	public static final double DAY_SHIFT_PROBABILITY = 0.7;
 
 	// Estimated
-	public static final double INFECTION_PROBABILITY = 0.35;
-	public static final double ACTIVE_CASE_PROBABILITY = 0.7;
-	private static final double MEAN_INCUBATION_TIME = 5.52 * 24;
-	private static final double STD_INCUBATION_TIME = 2.41 * 24;
+	public static final double INFECTION_ALPHA = 2.17;
+	public static final double INFECTION_BETA = 1.3;
+	public static final double INFECTION_MIN = -2.4;
+	private static final double MEAN_INCUBATION_TIME = 5.52;
+	private static final double STD_INCUBATION_TIME = 2.41;
 
 	public static double getTriangular(double min, double mode, double max) {
 		double beta = (mode - min) / (max - min);
@@ -54,19 +55,26 @@ public abstract class Probabilities {
 		double sigma = Math.log(t / Math.pow(MEAN_INCUBATION_TIME, 2));
 		Normal normalDistribution = RandomHelper.createNormal(mu, sigma);
 		double y = normalDistribution.nextDouble();
-		return Math.exp(y);
+		return Math.exp(y) * ModelParameters.HOURS_IN_DAY;
 	}
 
+	public static int getRandomId() {
+		return RandomHelper.nextIntFromTo(0, 9);
+	}
+	
 	public static PatientType getRandomPatientType() {
-		double r = RandomHelper.nextDoubleFromTo(0, 1);
-		if (r < 0.30) {
+		double r1 = RandomHelper.nextDoubleFromTo(0, 1);
+		if (r1 < 0.111) {
 			return PatientType.NO_SYMPTOMS;
-		} else if (r < 0.85) {
-			return PatientType.MODERATE_SYMPTOMS;
-		} else if (r < 0.95) {
-			return PatientType.SEVERE_SYMPTOMS;
 		} else {
-			return PatientType.CRITICAL_SYMPTOMS;
+			double r2 = RandomHelper.nextDoubleFromTo(0, 1);
+			if (r2 < 0.814) {
+				return PatientType.MODERATE_SYMPTOMS;
+			} else if (r2 < 0.953) {
+				return PatientType.SEVERE_SYMPTOMS;
+			} else {
+				return PatientType.CRITICAL_SYMPTOMS;
+			}
 		}
 	}
 
@@ -82,14 +90,14 @@ public abstract class Probabilities {
 		}
 	}
 
-	public static boolean isGettingExposed() {
+	public static boolean isGettingExposed(double incubationShift) {
 		double r = RandomHelper.nextDoubleFromTo(0, 1);
-		return r < Probabilities.INFECTION_PROBABILITY;
-	}
-
-	public static boolean isDevelopingActiveCase() {
-		double r = RandomHelper.nextDoubleFromTo(0, 1);
-		return r < Probabilities.ACTIVE_CASE_PROBABILITY;
+		Gamma gamma = RandomHelper.createGamma(INFECTION_ALPHA, INFECTION_BETA);
+		if (incubationShift < INFECTION_MIN)
+			return false;
+		double days = incubationShift / ModelParameters.HOURS_IN_DAY;
+		double probability = gamma.pdf(days - INFECTION_MIN);
+		return r < probability;
 	}
 
 	public static double getRandomTimeToDeath(PatientType patientType) {
@@ -112,21 +120,19 @@ public abstract class Probabilities {
 		if (dayShift) {
 			travels = Arrays.copyOfRange(dailyTravels, 4, 10);
 			displacement = 3;
-		}
-		else {
+		} else {
 			travels = Arrays.copyOfRange(dailyTravels, 18, 22);
 			displacement = 17;
 		}
 		int sum = 0;
 		for (int num : travels)
 			sum += num;
-		
 		double choice = RandomHelper.nextDoubleFromTo(0, 1);
 		int acum = 0;
 		for (int i = 0; i < travels.length; i++) {
 			acum += travels[i];
 			if (choice <= acum / sum) {
-				return RandomHelper.nextDoubleFromTo(0, 1) +  i +  displacement;
+				return RandomHelper.nextDoubleFromTo(0, 1) + i + displacement;
 			}
 		}
 		return 0;
@@ -138,8 +144,7 @@ public abstract class Probabilities {
 		if (dayShift) {
 			travels = Arrays.copyOfRange(dailyTravels, 13, 19);
 			displacement = 12;
-		}
-		else {
+		} else {
 			travels = Arrays.copyOfRange(dailyTravels, 1, 6);
 			displacement = 1;
 		}
@@ -147,13 +152,13 @@ public abstract class Probabilities {
 		int sum = 0;
 		for (int num : travels)
 			sum += num;
-		
+
 		double choice = RandomHelper.nextDoubleFromTo(0, 1);
 		int acum = 0;
 		for (int i = 0; i < travels.length; i++) {
 			acum += travels[i];
 			if (choice <= acum / sum) {
-				return RandomHelper.nextDoubleFromTo(0, 1) +  i +  displacement;
+				return RandomHelper.nextDoubleFromTo(0, 1) + i + displacement;
 			}
 		}
 		return 0;

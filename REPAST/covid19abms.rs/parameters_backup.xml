@@ -7,7 +7,13 @@
 									
 		/>
 				<parameter name="infectedCount" displayName="Infected Count" type="int" 
-						defaultValue="10" 
+						defaultValue="100" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+				<parameter name="quarantineEnd" displayName="Quarantine end (day)" type="int" 
+						defaultValue="50" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
@@ -19,7 +25,13 @@
 									
 		/>
 				<parameter name="susceptibleCount" displayName="Susceptible Count" type="int" 
-						defaultValue="10000" 
+						defaultValue="100000" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
+				<parameter name="quarantineStart" displayName="Quarantine start (day)" type="int" 
+						defaultValue="19" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

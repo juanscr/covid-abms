@@ -19,6 +19,7 @@ import simulation.Scheduler;
 public class Citizen implements Subject {
 
 	// Personal attributes
+	private int id;
 	private int age;
 	private ArrayList<Citizen> family;
 
@@ -34,6 +35,7 @@ public class Citizen implements Subject {
 	private double timeToDeath;
 	private double timeToImmune;
 	private double incubationTime;
+	private double incubationShift;
 
 	// Projection attributes
 	private Context<Object> context;
@@ -53,9 +55,10 @@ public class Citizen implements Subject {
 	private ISchedulableAction wakeUpAction;
 	private ISchedulableAction returnHomeAction;
 
-	public Citizen(Context<Object> context, Geography<Object> geography, Geometry boundary, Parameters params, int age,
-			DiseaseStage stage) {
+	public Citizen(Context<Object> context, Geography<Object> geography, Geometry boundary, Parameters params, int id,
+			int age, DiseaseStage stage) {
 		super();
+		this.id = id;
 		this.context = context;
 		this.geography = geography;
 		this.age = age;
@@ -70,19 +73,24 @@ public class Citizen implements Subject {
 
 	public void step() {
 		travel();
-		if (diseaseStage == DiseaseStage.INFECTED) {
+		if (diseaseStage == DiseaseStage.INFECTED)
 			infect();
-		}
+		if (diseaseStage == DiseaseStage.INFECTED || diseaseStage == DiseaseStage.EXPOSED)
+			incubationShift++;
 	}
 
 	public void wakeUp() {
-		atHome = false;
-		relocate(workplace);
+		if (PolicyEnforcer.getInstance().isAllowedToGoOut(this)) {
+			atHome = false;
+			relocate(workplace);
+		}
 	}
 
 	public void returnHome() {
-		atHome = true;
-		relocate(homeplace);
+		if (!atHome) {
+			atHome = true;
+			relocate(homeplace);
+		}
 	}
 
 	public void relocate(NdPoint destination) {
@@ -91,7 +99,6 @@ public class Citizen implements Subject {
 		coordinate.x = destination.getX();
 		coordinate.y = destination.getY();
 		geography.move(this, geometry);
-
 		if (within == null) {
 			double distance = params.getDouble("infectionRadius");
 			within = new GeographyWithin<Object>(geography, distance, geometry);
@@ -99,14 +106,12 @@ public class Citizen implements Subject {
 	}
 
 	public void setExposed() {
-		if (Probabilities.isDevelopingActiveCase()) {
-			diseaseStage = DiseaseStage.EXPOSED;
-			assignPatientType();
-			incubationTime = Probabilities.getRandomIncubationTime();
-			Scheduler.getInstance().scheduleOneTimeEvent(incubationTime, this, "setInfected");
-		} else {
-			diseaseStage = DiseaseStage.SUSCEPTIBLE;
-		}
+		diseaseStage = DiseaseStage.EXPOSED;
+		assignPatientType();
+		incubationTime = Probabilities.getRandomIncubationTime();
+		incubationShift = -incubationTime;
+		double timeToInfectious = Math.max(incubationTime + Probabilities.INFECTION_MIN, 1);
+		Scheduler.getInstance().scheduleOneTimeEvent(timeToInfectious, this, "setInfected");
 	}
 
 	public void setInfected() {
@@ -148,6 +153,10 @@ public class Citizen implements Subject {
 		}
 	}
 
+	public int getId() {
+		return id;
+	}
+	
 	public DiseaseStage getDiseaseStage() {
 		return diseaseStage;
 	}
@@ -196,30 +205,6 @@ public class Citizen implements Subject {
 		this.geometry = geometry;
 	}
 
-	public int isSusceptible() {
-		return diseaseStage == DiseaseStage.SUSCEPTIBLE ? 1 : 0;
-	}
-
-	public int isExposed() {
-		return diseaseStage == DiseaseStage.EXPOSED ? 1 : 0;
-	}
-
-	public int isInfected() {
-		return diseaseStage == DiseaseStage.INFECTED ? 1 : 0;
-	}
-
-	public int isImmune() {
-		return diseaseStage == DiseaseStage.IMMUNE ? 1 : 0;
-	}
-
-	public int isDead() {
-		return diseaseStage == DiseaseStage.DEAD ? 1 : 0;
-	}
-
-	public int isActiveCase() {
-		return Math.min(isExposed() + isInfected(), 1);
-	}
-
 	private void linkInInfectionNetwork(Citizen citizen) {
 		@SuppressWarnings("unchecked")
 		Network<Object> net = (Network<Object>) context.getProjection("infectionNetwork");
@@ -245,7 +230,7 @@ public class Citizen implements Subject {
 			break;
 		}
 	}
-	
+
 	private void selectShift() {
 		double random = RandomHelper.nextDoubleFromTo(0, 1);
 		dayShift = random < Probabilities.DAY_SHIFT_PROBABILITY;
@@ -263,7 +248,6 @@ public class Citizen implements Subject {
 	}
 
 	private void travel() {
-		// Geography movement
 		double distance = 2 * RandomHelper.nextDoubleFromTo(0, zone.getWalkAverage()) - zone.getWalkAverage();
 		if (!atHome)
 			distance = 2 * RandomHelper.nextDoubleFromTo(0, ModelParameters.MAX_MOVEMENT_IN_DESTINATION)
@@ -276,7 +260,8 @@ public class Citizen implements Subject {
 		for (Object obj : within.query()) {
 			if (obj instanceof Citizen) {
 				Citizen citizen = (Citizen) obj;
-				if (citizen.diseaseStage == DiseaseStage.SUSCEPTIBLE && Probabilities.isGettingExposed()) {
+				if (citizen.diseaseStage == DiseaseStage.SUSCEPTIBLE
+						&& Probabilities.isGettingExposed(incubationShift)) {
 					citizen.setExposed();
 					linkInInfectionNetwork(citizen);
 				}

@@ -18,6 +18,7 @@ import model.Citizen;
 import model.DiseaseStage;
 import model.Heuristics;
 import model.ModelParameters;
+import model.PolicyEnforcer;
 import model.Probabilities;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactory;
@@ -47,7 +48,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		// Read EOD matrix
 		HashMap<String, Object> eod = Reader.loadEODMatrix("../covid/eod_2017.csv");
 		HashMap<String, Object> walks = Reader.loadEODWalksMatrix("../covid/eod_2017_walks.csv");
-		
+
 		// Read SIT zones and create list with zones
 		List<SimpleFeature> zonesFeatures = Reader.loadGeometryFromShapefile("../covid/maps/EOD.shp");
 		ArrayList<Zone> zoneList = new ArrayList<Zone>();
@@ -69,7 +70,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 			} else {
 				walk = averageWalk;
 			}
-			double zoneWalk = ModelParameters.MAX_MOVEMENT_IN_DESTINATION * walk/maxWalk;
+			double zoneWalk = ModelParameters.MAX_MOVEMENT_IN_DESTINATION * walk / maxWalk;
 			zoneList.add(new Zone(zoneGeometry, id, zoneWalk));
 		}
 
@@ -82,7 +83,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		Border border = new Border(borderGeometry);
 		border.setGeometryInGeography(geography);
 		context.add(border);
-		
+
 		// Add zones to context and projection
 		for (Zone zone : zoneList) {
 			zone.setGeometryInGeography(geography);
@@ -92,19 +93,27 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		// Network projection
 		NetworkBuilder<Object> netBuilder = new NetworkBuilder<Object>("infectionNetwork", context, true);
 		netBuilder.buildNetwork();
-		
+
 		// Get simulation parameters
 		Parameters simParams = RunEnvironment.getInstance().getParameters();
+
+		// Policy enforcer
+		PolicyEnforcer policyEnforcer = PolicyEnforcer.getInstance();
+		policyEnforcer.scheduleQuarantine(simParams.getInteger("quarantineStart"), simParams.getInteger("quarantineEnd"));
+		//policyEnforcer.noPolicies();
+		context.add(policyEnforcer);
 
 		// Observer
 		DailyNewCases newCasesDataSource = new DailyNewCases();
 		context.add(newCasesDataSource);
-		
+
 		// Susceptible citizens
 		int susceptibleCount = simParams.getInteger("susceptibleCount");
 		for (int i = 0; i < susceptibleCount; i++) {
 			int age = Probabilities.getRandomAge();
-			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.SUSCEPTIBLE);
+			int id = Probabilities.getRandomId();
+			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, id, age,
+					DiseaseStage.SUSCEPTIBLE);
 			citizen.attach(newCasesDataSource);
 			context.add(citizen);
 		}
@@ -113,7 +122,9 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		int infectedCount = simParams.getInteger("infectedCount");
 		for (int i = 0; i < infectedCount; i++) {
 			int age = Probabilities.getRandomAge();
-			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, age, DiseaseStage.INFECTED);
+			int id = Probabilities.getRandomId();
+			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, id, age,
+					DiseaseStage.INFECTED);
 			citizen.attach(newCasesDataSource);
 			context.add(citizen);
 		}
@@ -160,7 +171,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		}
 
 		RunEnvironment.getInstance().endAt(ModelParameters.SIMULATION_END);
-		
+
 		return context;
 	}
 
