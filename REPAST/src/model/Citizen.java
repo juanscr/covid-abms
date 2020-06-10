@@ -94,7 +94,7 @@ public class Citizen implements Subject {
 	}
 
 	public void relocate(NdPoint destination) {
-		// Geography movement
+		// Geography movement citizen
 		Coordinate coordinate = geometry.getCoordinate();
 		coordinate.x = destination.getX();
 		coordinate.y = destination.getY();
