@@ -9,12 +9,12 @@ import repast.simphony.random.RandomHelper;
 public abstract class Probabilities {
 
 	// Taken from (DANE, 2018)
-	private static double ageProbs[] = { 14.43, 16.9, 17.28, 14.87, 12.21, 11.04, 7.28, 3.93, 2.06 };
-	private static int ageRanges[][] = { { 0, 9 }, { 10, 19 }, { 20, 29 }, { 30, 39 }, { 40, 49 }, { 50, 59 },
+	public static final double ageProbs[] = { 14.43, 16.9, 17.28, 14.87, 12.21, 11.04, 7.28, 3.93, 2.06 };
+	public static final int ageRanges[][] = { { 0, 9 }, { 10, 19 }, { 20, 29 }, { 30, 39 }, { 40, 49 }, { 50, 59 },
 			{ 60, 69 }, { 70, 79 }, { 80, 121 } };
 
 	// Work proportions
-	public static int[] dailyTravels = { 335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620, 245991,
+	public static final int[] dailyTravels = { 335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620, 245991,
 			322370, 318179, 313987, 327201, 309527, 395493, 613719, 466570, 210368, 128377, 93656, 60591, 23699 };
 	public static final double DAY_SHIFT_PROBABILITY = 0.7;
 
@@ -22,8 +22,8 @@ public abstract class Probabilities {
 	public static final double INFECTION_ALPHA = 2.17;
 	public static final double INFECTION_BETA = 1.3;
 	public static final double INFECTION_MIN = -2.4;
-	private static final double MEAN_INCUBATION_TIME = 5.52;
-	private static final double STD_INCUBATION_TIME = 2.41;
+	public static final double MEAN_INCUBATION_TIME = 5.52;
+	public static final double STD_INCUBATION_TIME = 2.41;
 
 	public static double getTriangular(double min, double mode, double max) {
 		double beta = (mode - min) / (max - min);
@@ -61,7 +61,7 @@ public abstract class Probabilities {
 	public static int getRandomId() {
 		return RandomHelper.nextIntFromTo(0, 9);
 	}
-	
+
 	public static PatientType getRandomPatientType() {
 		double r1 = RandomHelper.nextDoubleFromTo(0, 1);
 		if (r1 < 0.111) {

@@ -94,7 +94,7 @@ public class Citizen implements Subject {
 	}
 
 	public void relocate(NdPoint destination) {
-		// Geography movement citizen
+		// Geography movement
 		Coordinate coordinate = geometry.getCoordinate();
 		coordinate.x = destination.getX();
 		coordinate.y = destination.getY();
@@ -134,6 +134,7 @@ public class Citizen implements Subject {
 	public void kill() {
 		diseaseStage = DiseaseStage.DEAD;
 		removeScheduledEvents();
+		notifyDeath();
 	}
 
 	@Override
@@ -156,7 +157,7 @@ public class Citizen implements Subject {
 	public int getId() {
 		return id;
 	}
-	
+
 	public DiseaseStage getDiseaseStage() {
 		return diseaseStage;
 	}
@@ -278,6 +279,13 @@ public class Citizen implements Subject {
 		schedule.removeAction(stepAction);
 		schedule.removeAction(wakeUpAction);
 		schedule.removeAction(returnHomeAction);
+	}
+
+	@Override
+	public void notifyDeath() {
+		for (Observer o : observers) {
+			o.reportDeath(this);
+		}
 	}
 
 }

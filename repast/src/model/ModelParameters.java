@@ -14,4 +14,8 @@ public abstract class ModelParameters {
 
 	public static final String DAILY_NEW_CASES_FILE = "daily_cases.csv";
 
+	public static final String DAILY_DEATHS = "daily_deaths.csv";
+
+	public static final String HOURLY_R0 = "hourly_r0.csv";
+
 }

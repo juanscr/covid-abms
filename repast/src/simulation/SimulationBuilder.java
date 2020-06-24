@@ -1,5 +1,7 @@
 package simulation;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +28,7 @@ import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.continuous.NdPoint;
@@ -34,23 +37,28 @@ import repast.simphony.space.gis.GeographyParameters;
 
 public class SimulationBuilder implements ContextBuilder<Object> {
 
+	private Context<Object> context;
+	private int initialPopulation;
+	private int initialSusceptibles;
+	public ArrayList<Double> hourlyR0 = new ArrayList<Double>();
+
 	@Override
 	public Context<Object> build(Context<Object> context) {
 		context.setId("covid19ABMS");
 
 		// Read Aburra Valley border geometry
-		List<SimpleFeature> borderFeatures = Reader.loadGeometryFromShapefile("../sit-zone-information/maps/EOD_border.shp");
+		List<SimpleFeature> borderFeatures = Reader.loadGeometryFromShapefile("../covid/maps/EOD_border.shp");
 		Geometry borderGeometry = (MultiPolygon) borderFeatures.get(0).getDefaultGeometry();
 		AffineTransformation transformation = new AffineTransformation();
 		transformation.scale(2, 2);
 		borderGeometry = transformation.transform(borderGeometry);
 
 		// Read EOD matrix
-		HashMap<String, Object> eod = Reader.loadEODMatrix("../sit-zone-information/eod_2017.csv");
-		HashMap<String, Object> walks = Reader.loadEODWalksMatrix("../sit-zone-information/eod_2017_walks.csv");
+		HashMap<String, Object> eod = Reader.loadEODMatrix("../covid/eod_2017.csv");
+		HashMap<String, Object> walks = Reader.loadEODWalksMatrix("../covid/eod_2017_walks.csv");
 
 		// Read SIT zones and create list with zones
-		List<SimpleFeature> zonesFeatures = Reader.loadGeometryFromShapefile("../sit-zone-information/maps/EOD.shp");
+		List<SimpleFeature> zonesFeatures = Reader.loadGeometryFromShapefile("../covid/maps/EOD.shp");
 		ArrayList<Zone> zoneList = new ArrayList<Zone>();
 		HashMap<Integer, Integer> rows = (HashMap<Integer, Integer>) walks.get("rows");
 		ArrayList<Double> averageWalks = (ArrayList<Double>) walks.get("walks");
@@ -99,8 +107,8 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 
 		// Policy enforcer
 		PolicyEnforcer policyEnforcer = PolicyEnforcer.getInstance();
-		policyEnforcer.scheduleQuarantine(simParams.getInteger("quarantineStart"), simParams.getInteger("quarantineEnd"));
-		//policyEnforcer.noPolicies();
+		//policyEnforcer.scheduleQuarantine(simParams.getInteger("quarantineStart"), simParams.getInteger("quarantineEnd"));
+		policyEnforcer.noPolicies();
 		context.add(policyEnforcer);
 
 		// Observer
@@ -117,6 +125,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 			citizen.attach(newCasesDataSource);
 			context.add(citizen);
 		}
+		this.initialSusceptibles = susceptibleCount;
 
 		// Infected citizens
 		int infectedCount = simParams.getInteger("infectedCount");
@@ -128,6 +137,8 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 			citizen.attach(newCasesDataSource);
 			context.add(citizen);
 		}
+
+		this.initialPopulation = this.initialSusceptibles + infectedCount;
 
 		// Create citizen list
 		ArrayList<Citizen> citizenList = new ArrayList<Citizen>();
@@ -170,9 +181,44 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 			Heuristics.assignWorkplace(citizen, eod, zoneList);
 		}
 
+		context.add(this);
+
 		RunEnvironment.getInstance().endAt(ModelParameters.SIMULATION_END);
 
+		this.context = context;
+
 		return context;
+	}
+
+	@ScheduledMethod(start = 1, interval = 1)
+	public void calculateR0() {
+		int st = 0;
+		for (Object object : this.context.getObjects(Citizen.class)) {
+			Citizen citizen = (Citizen) object;
+			if (citizen.getDiseaseStage() == DiseaseStage.SUSCEPTIBLE)
+				st++;
+		}
+		double s0 = this.initialSusceptibles * 1.0;
+		double p0 = this.initialPopulation;
+		double r0 = Math.log(s0 / st) / (p0 - st);
+		r0 = r0 * s0;
+		hourlyR0.add(r0);
+	}
+
+	@ScheduledMethod(start = ModelParameters.SIMULATION_END - 1)
+	public void flush() {
+		String outFile = ModelParameters.OUTPUT_FOLDER + "/" + ModelParameters.HOURLY_R0;
+		FileWriter writer;
+		try {
+			writer = new FileWriter(outFile);
+			writer.append("Hour; R0\n");
+			for (int i = 0; i < hourlyR0.size(); i++) {
+				writer.append((i + 1) + ";" + hourlyR0.get(i) + "\n");
+			}
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

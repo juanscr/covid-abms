@@ -8,4 +8,6 @@ public interface Subject {
 
 	public void notifyNewCase();
 
+	public void notifyDeath();
+	
 }

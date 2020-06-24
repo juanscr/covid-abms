@@ -11,8 +11,8 @@ import repast.simphony.space.gis.Geography;
 
 public abstract class Heuristics {
 
-	private static int familyProbs[] = { 19, 23, 24, 19, 8, 7 };
-	private static int houseRadius = 0;
+	public static final int familyProbs[] = { 19, 23, 24, 19, 8, 7 };
+	public static final int houseRadius = 0;
 
 	public static void getFamily(Citizen toSelect, ArrayList<Citizen> citizenList) {
 		ArrayList<Citizen> family = new ArrayList<Citizen>();

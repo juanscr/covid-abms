@@ -20,7 +20,7 @@ import repast.simphony.visualization.gis3D.style.MarkStyle;
 public class CitizenStyle implements MarkStyle<Citizen> {
 
 	private Map<String, WWTexture> textureMap;
-	private static final float MAX_SCALE = 1f;
+	private static final float MAX_SCALE = 2.5f;
 
 	public CitizenStyle() {
 		textureMap = new HashMap<String, WWTexture>();
