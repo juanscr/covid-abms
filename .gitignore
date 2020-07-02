@@ -17,6 +17,7 @@
 *.fls
 *.hi
 *.iml
+latestdata.csv
 *.log
 *.nav
 *.o
