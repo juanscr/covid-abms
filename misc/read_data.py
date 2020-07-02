@@ -23,7 +23,7 @@ class DataAnalysis:
         self.solutions = []
         self.possible_distributions = ["beta", "expon", "exponpow", "f", "gamma", "invgauss", "invweibull",
                                        "johnsonsb", "johnsonsu", "laplace", "logistic", "loglaplace",
-                                       "lognorm", "5norm", "pareto", "rayleigh", "t", "triang", "uniform",
+                                       "lognorm", "norm", "pareto", "rayleigh", "t", "triang", "uniform",
                                        "wald", "weibull_min"]
 
     # Set data to analyze
