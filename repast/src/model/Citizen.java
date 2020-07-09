@@ -15,6 +15,7 @@ import repast.simphony.random.RandomHelper;
 import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.space.gis.Geography;
 import simulation.EventScheduler;
+import util.TickConverter;
 
 public class Citizen {
 
@@ -170,29 +171,33 @@ public class Citizen {
 	 * Set exposed
 	 */
 	public void setExposed() {
-		EventScheduler eventScheduler = EventScheduler.getInstance();
 		this.diseaseStage = DiseaseStage.EXPOSED;
 		double incubationPeriod = Probabilities.getRandomIncubationPeriod();
-		this.incubationShift = -incubationPeriod;
-		double timeToInfectious = Math.max(incubationPeriod + Probabilities.INFECTION_MIN, 1);
-		eventScheduler.scheduleOneTimeEvent(timeToInfectious, this, "setInfected");
+		this.incubationShift = -TickConverter.daysToTicks(incubationPeriod);
+		double infectiousPeriod = Math.max(incubationPeriod + Probabilities.INFECTION_MIN, 1);
+		double ticks = TickConverter.daysToTicks(infectiousPeriod);
+		EventScheduler eventScheduler = EventScheduler.getInstance();
+		eventScheduler.scheduleOneTimeEvent(ticks, this, "setInfected");
 	}
 
 	/**
 	 * Set infected
 	 */
 	public void setInfected() {
-		EventScheduler eventScheduler = EventScheduler.getInstance();
 		this.diseaseStage = DiseaseStage.INFECTED;
 		PatientType patientType = Probabilities.getRandomPatientType();
-		boolean isGoingToDie = Probabilities.isGoingToDie(patientType);
-		if (isGoingToDie) {
-			double timeToDeath = Probabilities.getRandomTimeToDeath(patientType);
-			eventScheduler.scheduleOneTimeEvent(timeToDeath, this, "kill");
+		double daysToEvent = 0.0;
+		String method = "";
+		if (Probabilities.isGoingToDie(patientType)) {
+			daysToEvent = Probabilities.getRandomTimeToDeath(patientType);
+			method = "kill";
 		} else {
-			double timeToImmune = Probabilities.getRandomTimeToImmune(patientType);
-			eventScheduler.scheduleOneTimeEvent(timeToImmune, this, "setImmune");
+			daysToEvent = Probabilities.getRandomTimeToImmune(patientType);
+			method = "setImmune";
 		}
+		double ticks = TickConverter.daysToTicks(daysToEvent);
+		EventScheduler eventScheduler = EventScheduler.getInstance();
+		eventScheduler.scheduleOneTimeEvent(ticks, this, method);
 	}
 
 	/**
@@ -322,35 +327,35 @@ public class Citizen {
 	public int isSusceptible() {
 		return diseaseStage == DiseaseStage.SUSCEPTIBLE ? 1 : 0;
 	}
-	
+
 	/**
 	 * Is exposed?
 	 */
 	public int isExposed() {
 		return diseaseStage == DiseaseStage.EXPOSED ? 1 : 0;
 	}
-	
+
 	/**
 	 * Is infected?
 	 */
 	public int isInfected() {
 		return diseaseStage == DiseaseStage.INFECTED ? 1 : 0;
 	}
-	
+
 	/**
 	 * Is immune?
 	 */
 	public int isImmune() {
 		return diseaseStage == DiseaseStage.IMMUNE ? 1 : 0;
 	}
-	
+
 	/**
 	 * Is dead?
 	 */
 	public int isDead() {
 		return diseaseStage == DiseaseStage.DEAD ? 1 : 0;
 	}
-	
+
 	/**
 	 * Initialize disease
 	 */
@@ -406,10 +411,9 @@ public class Citizen {
 		double distance = simParams.getDouble("infectionRadius");
 		Geometry searchArea = GeometryUtil.generateBuffer(geography, geography.getGeometry(this), distance);
 		Envelope searchEnvelope = searchArea.getEnvelopeInternal();
-		Iterable<Citizen> citizens = geography.getObjectsWithin(searchEnvelope, Citizen.class);	
+		Iterable<Citizen> citizens = geography.getObjectsWithin(searchEnvelope, Citizen.class);
 		for (Citizen citizen : citizens) {
-			if (citizen.diseaseStage == DiseaseStage.SUSCEPTIBLE
-					&& Probabilities.isGettingExposed(incubationShift)) {
+			if (citizen.diseaseStage == DiseaseStage.SUSCEPTIBLE && Probabilities.isGettingExposed(incubationShift)) {
 				citizen.setExposed();
 			}
 		}

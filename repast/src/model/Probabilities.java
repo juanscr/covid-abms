@@ -56,7 +56,7 @@ public abstract class Probabilities {
 		double sigma = Math.log(t / Math.pow(MEAN_INCUBATION_PERIOD, 2));
 		Normal normalDistribution = RandomHelper.createNormal(mu, sigma);
 		double y = normalDistribution.nextDouble();
-		return Math.exp(y) * ModelParameters.HOURS_IN_DAY;
+		return Math.exp(y);
 	}
 
 	public static int getRandomId() {
@@ -105,14 +105,14 @@ public abstract class Probabilities {
 		switch (patientType) {
 		case CRITICAL_SYMPTOMS:
 		case SEVERE_SYMPTOMS:
-			return RandomHelper.nextDoubleFromTo(10, 20) * 24;
+			return RandomHelper.nextDoubleFromTo(10, 20);
 		default:
-			return 24 * 3 * 30;
+			return -1;
 		}
 	}
 
 	public static double getRandomTimeToImmune(PatientType patientType) {
-		return 10 * 24;
+		return 10;
 	}
 
 	public static double getRandomWakeUpTime(Shift workShift) {
