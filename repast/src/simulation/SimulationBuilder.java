@@ -47,18 +47,18 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		context.setId("covid19ABMS");
 
 		// Read Aburra Valley border geometry
-		List<SimpleFeature> borderFeatures = Reader.loadGeometryFromShapefile("../covid/maps/EOD_border.shp");
+		List<SimpleFeature> borderFeatures = Reader.loadGeometryFromShapefile("../sit-zone-information/maps/EOD_border.shp");
 		Geometry borderGeometry = (MultiPolygon) borderFeatures.get(0).getDefaultGeometry();
 		AffineTransformation transformation = new AffineTransformation();
 		transformation.scale(2, 2);
 		borderGeometry = transformation.transform(borderGeometry);
 
 		// Read EOD matrix
-		HashMap<String, Object> eod = Reader.loadEODMatrix("../covid/eod_2017.csv");
-		HashMap<String, Object> walks = Reader.loadEODWalksMatrix("../covid/eod_2017_walks.csv");
+		HashMap<String, Object> eod = Reader.loadEODMatrix("../sit-zone-information/eod_2017.csv");
+		HashMap<String, Object> walks = Reader.loadEODWalksMatrix("../sit-zone-information/eod_2017_walks.csv");
 
 		// Read SIT zones and create list with zones
-		List<SimpleFeature> zonesFeatures = Reader.loadGeometryFromShapefile("../covid/maps/EOD.shp");
+		List<SimpleFeature> zonesFeatures = Reader.loadGeometryFromShapefile("../sit-zone-information/maps/EOD.shp");
 		ArrayList<Zone> zoneList = new ArrayList<Zone>();
 		HashMap<Integer, Integer> rows = (HashMap<Integer, Integer>) walks.get("rows");
 		ArrayList<Double> averageWalks = (ArrayList<Double>) walks.get("walks");
@@ -98,10 +98,6 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 			context.add(zone);
 		}
 
-		// Network projection
-		NetworkBuilder<Object> netBuilder = new NetworkBuilder<Object>("infectionNetwork", context, true);
-		netBuilder.buildNetwork();
-
 		// Get simulation parameters
 		Parameters simParams = RunEnvironment.getInstance().getParameters();
 
@@ -118,11 +114,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		// Susceptible citizens
 		int susceptibleCount = simParams.getInteger("susceptibleCount");
 		for (int i = 0; i < susceptibleCount; i++) {
-			int age = Probabilities.getRandomAge();
-			int id = Probabilities.getRandomId();
-			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, id, age,
-					DiseaseStage.SUSCEPTIBLE);
-			citizen.attach(newCasesDataSource);
+			Citizen citizen = new Citizen(geography, DiseaseStage.SUSCEPTIBLE);
 			context.add(citizen);
 		}
 		this.initialSusceptibles = susceptibleCount;
@@ -130,11 +122,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		// Infected citizens
 		int infectedCount = simParams.getInteger("infectedCount");
 		for (int i = 0; i < infectedCount; i++) {
-			int age = Probabilities.getRandomAge();
-			int id = Probabilities.getRandomId();
-			Citizen citizen = new Citizen(context, geography, borderGeometry, simParams, id, age,
-					DiseaseStage.INFECTED);
-			citizen.attach(newCasesDataSource);
+			Citizen citizen = new Citizen(geography, DiseaseStage.INFECTED);
 			context.add(citizen);
 		}
 

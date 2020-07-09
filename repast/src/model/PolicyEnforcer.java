@@ -57,28 +57,28 @@ public class PolicyEnforcer {
 		int[] schedule = strategySchedule.get(currentStrategy);
 		double tick = RepastEssentials.GetTickCount();
 		if ((schedule[0] <= tick && tick <= schedule[1])) {
-			return strategies.get(currentStrategy) == Strategy.idBasedRestriction;
+			return strategies.get(currentStrategy) == Strategy.ID_BASED_RESTRICTION;
 		} else {
 			return false;
 		}
 	}
 
 	public void scheduleQuarantine(int start, int end) {
-		strategies.add(Strategy.none);
-		strategies.add(Strategy.idBasedRestriction);
+		strategies.add(Strategy.NONE);
+		strategies.add(Strategy.ID_BASED_RESTRICTION);
 		int[] noneInterval = { 0, start * ModelParameters.HOURS_IN_DAY };
 		int[] quarantineInterval = { start * ModelParameters.HOURS_IN_DAY, end * ModelParameters.HOURS_IN_DAY };
 		strategySchedule.add(noneInterval);
 		strategySchedule.add(quarantineInterval);
 		if (end * ModelParameters.HOURS_IN_DAY < ModelParameters.SIMULATION_END) {
-			strategies.add(Strategy.none);
+			strategies.add(Strategy.NONE);
 			int[] lastNoneInterval = { end * ModelParameters.HOURS_IN_DAY, ModelParameters.SIMULATION_END };
 			strategySchedule.add(lastNoneInterval);
 		}
 	}
 
 	public void noPolicies() {
-		strategies.add(Strategy.none);
+		strategies.add(Strategy.NONE);
 		int[] noneInterval = { 0, ModelParameters.SIMULATION_END };
 		strategySchedule.add(noneInterval);
 	}

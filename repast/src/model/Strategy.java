@@ -1,5 +1,5 @@
 package model;
 
 public enum Strategy {
-	none, idBasedRestriction
+	NONE, ID_BASED_RESTRICTION
 }

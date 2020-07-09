@@ -14,8 +14,9 @@ public abstract class Probabilities {
 			{ 60, 69 }, { 70, 79 }, { 80, 121 } };
 
 	// Work proportions
-	public static final int[] dailyTravels = { 335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620, 245991,
-			322370, 318179, 313987, 327201, 309527, 395493, 613719, 466570, 210368, 128377, 93656, 60591, 23699 };
+	public static final int[] dailyTravels = { 335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620,
+			245991, 322370, 318179, 313987, 327201, 309527, 395493, 613719, 466570, 210368, 128377, 93656, 60591,
+			23699 };
 	public static final double DAY_SHIFT_PROBABILITY = 0.7;
 
 	// Estimated
@@ -114,10 +115,10 @@ public abstract class Probabilities {
 		return 10 * 24;
 	}
 
-	public static double getRandomWakeUpTime(boolean dayShift) {
+	public static double getRandomWakeUpTime(Shift workShift) {
 		int[] travels;
 		int displacement;
-		if (dayShift) {
+		if (workShift == Shift.DAY) {
 			travels = Arrays.copyOfRange(dailyTravels, 4, 10);
 			displacement = 3;
 		} else {
@@ -138,10 +139,10 @@ public abstract class Probabilities {
 		return 0;
 	}
 
-	public static double getRandomReturnToHomeTime(boolean dayShift) {
+	public static double getRandomReturnToHomeTime(Shift workShift) {
 		int[] travels;
 		int displacement;
-		if (dayShift) {
+		if (workShift == Shift.DAY) {
 			travels = Arrays.copyOfRange(dailyTravels, 13, 19);
 			displacement = 12;
 		} else {
@@ -162,6 +163,15 @@ public abstract class Probabilities {
 			}
 		}
 		return 0;
+	}
+
+	
+	/**
+	 * Get random work shift. Reference: <pending>
+	 */
+	public static Shift getRandomWorkShift() {
+		double random = RandomHelper.nextDoubleFromTo(0, 1);
+		return (random < Probabilities.DAY_SHIFT_PROBABILITY) ? Shift.DAY : Shift.NIGHT;
 	}
 
 }

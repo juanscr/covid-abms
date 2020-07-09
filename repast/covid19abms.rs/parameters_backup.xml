@@ -7,7 +7,7 @@
 									
 		/>
 				<parameter name="infectedCount" displayName="Infected Count" type="int" 
-						defaultValue="100" 
+						defaultValue="20" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

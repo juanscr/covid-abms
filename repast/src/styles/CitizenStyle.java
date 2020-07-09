@@ -122,7 +122,6 @@ public class CitizenStyle implements MarkStyle<Citizen> {
 		return 1;
 	}
 
-	//// NULL METHODS
 	@Override
 	public Font getLabelFont(Citizen obj) {
 		// TODO Auto-generated method stub

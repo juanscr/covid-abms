@@ -25,7 +25,7 @@
 									
 		/>
 				<parameter name="susceptibleCount" displayName="Susceptible Count" type="int" 
-						defaultValue="100000" 
+						defaultValue="5000" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
