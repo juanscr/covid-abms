@@ -23,8 +23,8 @@ public abstract class Probabilities {
 	public static final double INFECTION_ALPHA = 2.17;
 	public static final double INFECTION_BETA = 1.3;
 	public static final double INFECTION_MIN = -2.4;
-	public static final double MEAN_INCUBATION_TIME = 5.52;
-	public static final double STD_INCUBATION_TIME = 2.41;
+	public static final double MEAN_INCUBATION_PERIOD = 5.52;
+	public static final double STD_INCUBATION_PERIOD = 2.41;
 
 	public static double getTriangular(double min, double mode, double max) {
 		double beta = (mode - min) / (max - min);
@@ -50,10 +50,10 @@ public abstract class Probabilities {
 		return -1;
 	}
 
-	public static double getRandomIncubationTime() {
-		double t = Math.pow(MEAN_INCUBATION_TIME, 2) + Math.pow(STD_INCUBATION_TIME, 2);
-		double mu = Math.log(Math.pow(MEAN_INCUBATION_TIME, 2) / Math.sqrt(t));
-		double sigma = Math.log(t / Math.pow(MEAN_INCUBATION_TIME, 2));
+	public static double getRandomIncubationPeriod() {
+		double t = Math.pow(MEAN_INCUBATION_PERIOD, 2) + Math.pow(STD_INCUBATION_PERIOD, 2);
+		double mu = Math.log(Math.pow(MEAN_INCUBATION_PERIOD, 2) / Math.sqrt(t));
+		double sigma = Math.log(t / Math.pow(MEAN_INCUBATION_PERIOD, 2));
 		Normal normalDistribution = RandomHelper.createNormal(mu, sigma);
 		double y = normalDistribution.nextDouble();
 		return Math.exp(y) * ModelParameters.HOURS_IN_DAY;

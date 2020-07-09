@@ -172,9 +172,9 @@ public class Citizen {
 	public void setExposed() {
 		EventScheduler eventScheduler = EventScheduler.getInstance();
 		this.diseaseStage = DiseaseStage.EXPOSED;
-		double incubationTime = Probabilities.getRandomIncubationTime();
-		this.incubationShift = -incubationTime;
-		double timeToInfectious = Math.max(incubationTime + Probabilities.INFECTION_MIN, 1);
+		double incubationPeriod = Probabilities.getRandomIncubationPeriod();
+		this.incubationShift = -incubationPeriod;
+		double timeToInfectious = Math.max(incubationPeriod + Probabilities.INFECTION_MIN, 1);
 		eventScheduler.scheduleOneTimeEvent(timeToInfectious, this, "setInfected");
 	}
 
