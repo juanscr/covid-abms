@@ -13,7 +13,6 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.util.AffineTransformation;
-import datasource.DailyNewCases;
 import geography.Border;
 import geography.Zone;
 import model.Citizen;
@@ -21,11 +20,9 @@ import model.DiseaseStage;
 import model.Heuristics;
 import model.ModelParameters;
 import model.PolicyEnforcer;
-import model.Probabilities;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactory;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
-import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ScheduledMethod;
@@ -78,7 +75,7 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 			} else {
 				walk = averageWalk;
 			}
-			double zoneWalk = ModelParameters.MAX_MOVEMENT_IN_DESTINATION * walk / maxWalk;
+			double zoneWalk = Citizen.MAX_MOVEMENT_IN_DESTINATION * walk / maxWalk;
 			zoneList.add(new Zone(zoneGeometry, id, zoneWalk));
 		}
 
@@ -106,10 +103,6 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		//policyEnforcer.scheduleQuarantine(simParams.getInteger("quarantineStart"), simParams.getInteger("quarantineEnd"));
 		policyEnforcer.noPolicies();
 		context.add(policyEnforcer);
-
-		// Observer
-		DailyNewCases newCasesDataSource = new DailyNewCases();
-		context.add(newCasesDataSource);
 
 		// Susceptible citizens
 		int susceptibleCount = simParams.getInteger("susceptibleCount");

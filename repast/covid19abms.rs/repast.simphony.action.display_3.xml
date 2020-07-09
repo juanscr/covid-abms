@@ -18,7 +18,7 @@
   <editedStyles>
     <entry>
       <string>model.Citizen</string>
-      <null/>
+      <string>model.Citizen.style_3.xml</string>
     </entry>
     <entry>
       <string>geography.Zone</string>
@@ -39,7 +39,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-1151356137</hashCode>
+    <hashCode>1392587105</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>

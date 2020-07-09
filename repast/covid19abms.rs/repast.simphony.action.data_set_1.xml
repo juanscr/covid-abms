@@ -1,26 +1,62 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>Active cases</name>
+  <name>ComparmentsTimeSeries</name>
   <type>AGGREGATE</type>
   <inclTick>true</inclTick>
   <inclBatchRun>false</inclBatchRun>
   <inclRandomSeed>false</inclRandomSeed>
   <scheduleParams>
     <start>1.0</start>
-    <interval>24.0</interval>
+    <interval>1.0</interval>
     <priority>-Infinity</priority>
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>2062408808</hashCode>
+    <hashCode>-197175056</hashCode>
   </scheduleParams>
-  <atEnd>false</atEnd>
+  <atEnd>true</atEnd>
   <methodDataSources class="linked-hash-map">
     <entry>
-      <string>Active cases</string>
+      <string>susceptible</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>Active cases</id>
+        <id>susceptible</id>
         <className>model.Citizen</className>
-        <methodName>isActiveCase</methodName>
+        <methodName>isSusceptible</methodName>
+        <aggType>SUM</aggType>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>exposed</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>exposed</id>
+        <className>model.Citizen</className>
+        <methodName>isExposed</methodName>
+        <aggType>SUM</aggType>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>infected</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>infected</id>
+        <className>model.Citizen</className>
+        <methodName>isInfected</methodName>
+        <aggType>SUM</aggType>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>recovered</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>recovered</id>
+        <className>model.Citizen</className>
+        <methodName>isImmune</methodName>
+        <aggType>SUM</aggType>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>dead</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>dead</id>
+        <className>model.Citizen</className>
+        <methodName>isDead</methodName>
         <aggType>SUM</aggType>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>

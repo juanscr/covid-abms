@@ -5,20 +5,20 @@ import com.vividsolutions.jts.geom.Geometry;
 public class Zone extends Border {
 
 	private int id;
-	private double walkAverage;
+	private double walkingAverage;
 
-	public Zone(Geometry geometry, int id, double walkAverage) {
+	public Zone(Geometry geometry, int id, double walkingAverage) {
 		super(geometry);
 		this.id = id;
-		this.walkAverage = walkAverage;
+		this.walkingAverage = walkingAverage;
 	}
 
 	public int getId() {
 		return id;
 	}
 	
-	public double getWalkAverage() {
-		return walkAverage;
+	public double getWalkingAverage() {
+		return walkingAverage;
 	}
 
 }

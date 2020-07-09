@@ -3,6 +3,7 @@ package model;
 import java.util.ArrayList;
 import java.util.HashMap;
 import com.vividsolutions.jts.geom.Coordinate;
+
 import geography.Zone;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.random.RandomHelper;

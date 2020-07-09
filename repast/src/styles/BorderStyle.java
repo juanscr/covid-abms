@@ -1,6 +1,7 @@
 package styles;
 
 import java.awt.Color;
+
 import geography.Border;
 import gov.nasa.worldwind.render.SurfacePolyline;
 import gov.nasa.worldwind.render.SurfaceShape;
