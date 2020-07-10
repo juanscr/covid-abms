@@ -1,5 +1,5 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>ComparmentsTimeSeries</name>
+  <name>Comparments Time Series</name>
   <type>AGGREGATE</type>
   <inclTick>true</inclTick>
   <inclBatchRun>false</inclBatchRun>
@@ -11,7 +11,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-197175056</hashCode>
+    <hashCode>-1325473741</hashCode>
   </scheduleParams>
   <atEnd>true</atEnd>
   <methodDataSources class="linked-hash-map">

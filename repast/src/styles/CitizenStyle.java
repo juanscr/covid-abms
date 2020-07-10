@@ -20,11 +20,11 @@ import repast.simphony.visualization.gis3D.style.MarkStyle;
 public class CitizenStyle implements MarkStyle<Citizen> {
 
 	private Map<String, WWTexture> textureMap;
-	private static final float MAX_SCALE = 2.5f;
+	private static final float MAX_SCALE = 2f;
 
 	public CitizenStyle() {
 		textureMap = new HashMap<String, WWTexture>();
-		
+
 		Dimension dimension = new Dimension(3, 3);
 
 		// Create colors
@@ -139,7 +139,6 @@ public class CitizenStyle implements MarkStyle<Citizen> {
 		if (lineMaterial == null) {
 			lineMaterial = new Material(Color.RED);
 		}
-
 		return lineMaterial;
 	}
 }

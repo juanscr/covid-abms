@@ -3,7 +3,6 @@ package model;
 import java.util.ArrayList;
 import java.util.HashMap;
 import com.vividsolutions.jts.geom.Coordinate;
-
 import geography.Zone;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.random.RandomHelper;
@@ -156,12 +155,12 @@ public abstract class Heuristics {
 			positionX = houseSelected.getX() - houseRadius / 2 + RandomHelper.nextDoubleFromTo(0, houseRadius);
 			positionY = houseSelected.getY() - houseRadius / 2 + RandomHelper.nextDoubleFromTo(0, houseRadius);
 			citizenFamily.relocate(new NdPoint(positionX, positionY));
-			citizenFamily.setZone(selectedZone);
+			citizenFamily.setCurrentZone(selectedZone);
 		}
 	}
 
 	public static void assignWorkplace(Citizen citizen, HashMap<String, Object> eod, ArrayList<Zone> zoneList) {
-		int zoneId = citizen.getZone().getId();
+		int zoneId = citizen.getCurrentZone().getId();
 		HashMap<Integer, Integer> rows = (HashMap<Integer, Integer>) eod.get("rows");
 
 		if (rows.containsKey(zoneId)) {
@@ -194,7 +193,8 @@ public abstract class Heuristics {
 				}
 			}
 		}
-		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(citizen.getZone().getGeometry(), 1).get(0);
+		Coordinate coordinate = GeometryUtil.generateRandomPointsInPolygon(citizen.getCurrentZone().getGeometry(), 1)
+				.get(0);
 		citizen.setWorkplace(new NdPoint(coordinate.x, coordinate.y));
 	}
 

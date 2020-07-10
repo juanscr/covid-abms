@@ -3,18 +3,19 @@ package model;
 import java.util.ArrayList;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.essentials.RepastEssentials;
+import util.TickConverter;
 
 public class PolicyEnforcer {
 
 	private static PolicyEnforcer instance;
-	private ArrayList<Strategy> strategies;
+	private ArrayList<Policy> strategies;
 	private ArrayList<int[]> strategySchedule;
 	private int[][] allowedIds = { { 7, 8 }, { 9, 0 }, { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 }, { 9, 0, 1 } };
 	private int currentStrategy;
 	private int day;
 
 	private PolicyEnforcer() {
-		this.strategies = new ArrayList<Strategy>();
+		this.strategies = new ArrayList<Policy>();
 		this.strategySchedule = new ArrayList<int[]>();
 	}
 
@@ -57,30 +58,32 @@ public class PolicyEnforcer {
 		int[] schedule = strategySchedule.get(currentStrategy);
 		double tick = RepastEssentials.GetTickCount();
 		if ((schedule[0] <= tick && tick <= schedule[1])) {
-			return strategies.get(currentStrategy) == Strategy.ID_BASED_RESTRICTION;
+			return strategies.get(currentStrategy) == Policy.ID_BASED_RESTRICTION;
 		} else {
 			return false;
 		}
 	}
 
 	public void scheduleQuarantine(int start, int end) {
-		strategies.add(Strategy.NONE);
-		strategies.add(Strategy.ID_BASED_RESTRICTION);
-		int[] noneInterval = { 0, start * ModelParameters.HOURS_IN_DAY };
-		int[] quarantineInterval = { start * ModelParameters.HOURS_IN_DAY, end * ModelParameters.HOURS_IN_DAY };
+		strategies.add(Policy.NONE);
+		strategies.add(Policy.ID_BASED_RESTRICTION);
+		int[] noneInterval = { 0, start * TickConverter.TICKS_PER_DAY };
+		int[] quarantineInterval = { start * TickConverter.TICKS_PER_DAY, end * TickConverter.TICKS_PER_DAY };
 		strategySchedule.add(noneInterval);
 		strategySchedule.add(quarantineInterval);
-		if (end * ModelParameters.HOURS_IN_DAY < ModelParameters.SIMULATION_END) {
-			strategies.add(Strategy.NONE);
-			int[] lastNoneInterval = { end * ModelParameters.HOURS_IN_DAY, ModelParameters.SIMULATION_END };
+		if (end * TickConverter.TICKS_PER_DAY < 3 * 30 * TickConverter.TICKS_PER_DAY) { // simulation end
+			strategies.add(Policy.NONE);
+			int[] lastNoneInterval = { end * TickConverter.TICKS_PER_DAY, 3 * 30 * TickConverter.TICKS_PER_DAY }; // simulation
+																													// end
 			strategySchedule.add(lastNoneInterval);
 		}
 	}
 
 	public void noPolicies() {
-		strategies.add(Strategy.NONE);
-		int[] noneInterval = { 0, ModelParameters.SIMULATION_END };
+		strategies.add(Policy.NONE);
+		// simulation end
+		int[] noneInterval = { 0, 3 * 30 * TickConverter.TICKS_PER_DAY };
 		strategySchedule.add(noneInterval);
 	}
-	
+
 }

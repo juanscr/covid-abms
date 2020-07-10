@@ -2,23 +2,39 @@ package geography;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-public class Zone extends Border {
+/**
+ * Geo-spatial zone
+ * 
+ * @author Paula Escudero
+ * @author Mateo Bonnett
+ * @author David Plazas
+ * @author Juan Sebastián Cárdenas
+ * @author David Andrés Romero
+ */
+public class Zone extends GISPolygon {
 
-	private int id;
+	/**
+	 * Walking average (unit: meters)
+	 */
 	private double walkingAverage;
 
-	public Zone(Geometry geometry, int id, double walkingAverage) {
-		super(geometry);
-		this.id = id;
+	/**
+	 * Create a new geo-spatial zone
+	 * 
+	 * @param id             Zone id
+	 * @param geometry       Reference to geometry
+	 * @param walkingAverage Walking average
+	 */
+	public Zone(int id, Geometry geometry, double walkingAverage) {
+		super(id, geometry);
 		this.walkingAverage = walkingAverage;
 	}
 
-	public int getId() {
-		return id;
-	}
-	
+	/**
+	 * Get walking average
+	 */
 	public double getWalkingAverage() {
-		return walkingAverage;
+		return this.walkingAverage;
 	}
 
 }

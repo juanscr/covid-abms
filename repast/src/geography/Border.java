@@ -1,22 +1,26 @@
 package geography;
 
 import com.vividsolutions.jts.geom.Geometry;
-import repast.simphony.space.gis.Geography;
+import geography.GISPolygon;
 
-public class Border {
+/**
+ * Geo-spatial border
+ * 
+ * @author Paula Escudero
+ * @author Mateo Bonnett
+ * @author David Plazas
+ * @author Juan Sebastián Cárdenas
+ * @author David Andrés Romero
+ */
+public class Border extends GISPolygon {
 
-	protected Geometry geometry;
-
+	/**
+	 * Create a new geo-spatial border
+	 * 
+	 * @param geometry Reference to geometry
+	 */
 	public Border(Geometry geometry) {
-		this.geometry = geometry;
-	}
-
-	public void setGeometryInGeography(Geography<Object> geography) {
-		geography.move(this, geometry);
-	}
-	
-	public Geometry getGeometry() {
-		return geometry;
+		super(geometry);
 	}
 
 }

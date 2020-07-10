@@ -1,55 +1,116 @@
 package model;
 
 import java.util.Arrays;
-
 import cern.jet.random.Gamma;
 import cern.jet.random.Normal;
 import repast.simphony.random.RandomHelper;
+import util.TickConverter;
 
+/**
+ * Probabilities
+ * 
+ * @author Paula Escudero
+ * @author Mateo Bonnett
+ * @author David Plazas
+ * @author Juan Sebastián Cárdenas
+ * @author David Andrés Romero
+ */
 public abstract class Probabilities {
 
-	// Taken from (DANE, 2018)
-	public static final double ageProbs[] = { 14.43, 16.9, 17.28, 14.87, 12.21, 11.04, 7.28, 3.93, 2.06 };
-	public static final int ageRanges[][] = { { 0, 9 }, { 10, 19 }, { 20, 29 }, { 30, 39 }, { 40, 49 }, { 50, 59 },
+	/**
+	 * Age ranges (unit: age). Reference: <pending>
+	 */
+	public static final int AGE_RANGES[][] = { { 0, 9 }, { 10, 19 }, { 20, 29 }, { 30, 39 }, { 40, 49 }, { 50, 59 },
 			{ 60, 69 }, { 70, 79 }, { 80, 121 } };
 
-	// Work proportions
-	public static final int[] dailyTravels = { 335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620,
+	/**
+	 * Age probabilities (unit: probability). Reference: <pending>
+	 */
+	public static final double AGE_PROBABILITIES[] = { 0.1443, 0.169, 0.1728, 0.1487, 0.1221, 0.1104, 0.0728, 0.0393,
+			0.0206 };
+
+	/**
+	 * Daily travels (unit: travels). Reference: <pending>
+	 */
+	public static final int[] DAILY_TRAVELS = { 335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620,
 			245991, 322370, 318179, 313987, 327201, 309527, 395493, 613719, 466570, 210368, 128377, 93656, 60591,
 			23699 };
+
+	/**
+	 * Day shift probability (unit: probability). Reference: <pending>
+	 */
 	public static final double DAY_SHIFT_PROBABILITY = 0.7;
 
-	// Estimated
+	/**
+	 * Infection alpha parameter. Reference: <pending>
+	 */
 	public static final double INFECTION_ALPHA = 2.17;
+
+	/**
+	 * Infection beta parameter. Reference: <pending>
+	 */
 	public static final double INFECTION_BETA = 1.3;
+
+	/**
+	 * Infection minimum parameter. Reference: <pending>
+	 */
 	public static final double INFECTION_MIN = -2.4;
+
+	/**
+	 * Incubation period mean parameter (unit: days). Reference: <pending>
+	 */
 	public static final double MEAN_INCUBATION_PERIOD = 5.52;
+
+	/**
+	 * Incubation period standard deviation parameter (unit: days). Reference:
+	 * <pending>
+	 */
 	public static final double STD_INCUBATION_PERIOD = 2.41;
 
-	public static double getTriangular(double min, double mode, double max) {
+	/**
+	 * Get random number based on a triangular distribution
+	 * 
+	 * @param min  Minimum
+	 * @param mode Mode
+	 * @param max  Maximum
+	 */
+	public static double getRandomTriangular(double min, double mode, double max) {
 		double beta = (mode - min) / (max - min);
-		double randomNumber = RandomHelper.nextDoubleFromTo(0, 1);
+		double r = RandomHelper.nextDoubleFromTo(0, 1);
 		double t = 0.0;
-		if (randomNumber < beta) {
-			t = Math.sqrt(beta * randomNumber);
+		if (r < beta) {
+			t = Math.sqrt(beta * r);
 		} else {
-			t = Math.sqrt((1 - beta) * (1 - randomNumber));
+			t = Math.sqrt((1 - beta) * (1 - r));
 		}
 		return min + (max - min) * t;
 	}
 
+	/**
+	 * Get random id. Reference: <pending>
+	 */
+	public static int getRandomId() {
+		return RandomHelper.nextIntFromTo(0, 9);
+	}
+
+	/**
+	 * Get random age (unit: age). Reference: <pending>
+	 */
 	public static int getRandomAge() {
-		double r = RandomHelper.nextDoubleFromTo(0, 1) * 100;
-		double acumProb = 0;
-		for (int i = 0; i < ageProbs.length; i++) {
-			acumProb += ageProbs[i];
-			if (r < acumProb) {
-				return RandomHelper.nextIntFromTo(ageRanges[i][0], ageRanges[i][1]);
+		double r = RandomHelper.nextDoubleFromTo(0, 1);
+		double cummulativeProbability = 0;
+		for (int i = 0; i < AGE_PROBABILITIES.length; i++) {
+			cummulativeProbability += AGE_PROBABILITIES[i];
+			if (r < cummulativeProbability) {
+				return RandomHelper.nextIntFromTo(AGE_RANGES[i][0], AGE_RANGES[i][1]);
 			}
 		}
 		return -1;
 	}
 
+	/**
+	 * Get random incubation period (unit: days). Reference: <pending>
+	 */
 	public static double getRandomIncubationPeriod() {
 		double t = Math.pow(MEAN_INCUBATION_PERIOD, 2) + Math.pow(STD_INCUBATION_PERIOD, 2);
 		double mu = Math.log(Math.pow(MEAN_INCUBATION_PERIOD, 2) / Math.sqrt(t));
@@ -59,10 +120,9 @@ public abstract class Probabilities {
 		return Math.exp(y);
 	}
 
-	public static int getRandomId() {
-		return RandomHelper.nextIntFromTo(0, 9);
-	}
-
+	/**
+	 * Get random patient type. Reference: <pending>
+	 */
 	public static PatientType getRandomPatientType() {
 		double r1 = RandomHelper.nextDoubleFromTo(0, 1);
 		if (r1 < 0.111) {
@@ -79,6 +139,9 @@ public abstract class Probabilities {
 		}
 	}
 
+	/**
+	 * Is the patient going to die?. Reference: <pending>
+	 */
 	public static boolean isGoingToDie(PatientType patientType) {
 		double r = RandomHelper.nextDoubleFromTo(0, 1);
 		switch (patientType) {
@@ -91,16 +154,22 @@ public abstract class Probabilities {
 		}
 	}
 
+	/**
+	 * Is the citizen getting exposed?. Reference: <pending>
+	 */
 	public static boolean isGettingExposed(double incubationShift) {
 		double r = RandomHelper.nextDoubleFromTo(0, 1);
 		Gamma gamma = RandomHelper.createGamma(INFECTION_ALPHA, INFECTION_BETA);
 		if (incubationShift < INFECTION_MIN)
 			return false;
-		double days = incubationShift / ModelParameters.HOURS_IN_DAY;
-		double probability = gamma.pdf(days - INFECTION_MIN);
-		return r < probability;
+		double days = TickConverter.ticksToDays(incubationShift);
+		double p = gamma.pdf(days - INFECTION_MIN);
+		return r < p;
 	}
 
+	/**
+	 * Get random time to death (unit: days). Reference: <pending>
+	 */
 	public static double getRandomTimeToDeath(PatientType patientType) {
 		switch (patientType) {
 		case CRITICAL_SYMPTOMS:
@@ -111,61 +180,69 @@ public abstract class Probabilities {
 		}
 	}
 
+	/**
+	 * Get random time to immune (unit: days). Reference: <pending>
+	 */
 	public static double getRandomTimeToImmune(PatientType patientType) {
 		return 10;
 	}
 
+	/**
+	 * Get random wake up time (unit: hours). Reference: <pending>
+	 */
 	public static double getRandomWakeUpTime(Shift workShift) {
 		int[] travels;
 		int displacement;
 		if (workShift == Shift.DAY) {
-			travels = Arrays.copyOfRange(dailyTravels, 4, 10);
+			travels = Arrays.copyOfRange(DAILY_TRAVELS, 4, 10);
 			displacement = 3;
 		} else {
-			travels = Arrays.copyOfRange(dailyTravels, 18, 22);
+			travels = Arrays.copyOfRange(DAILY_TRAVELS, 18, 22);
 			displacement = 17;
 		}
 		int sum = 0;
-		for (int num : travels)
-			sum += num;
-		double choice = RandomHelper.nextDoubleFromTo(0, 1);
+		for (int t : travels) {
+			sum += t;
+		}
+		double r = RandomHelper.nextDoubleFromTo(0, 1);
 		int acum = 0;
 		for (int i = 0; i < travels.length; i++) {
 			acum += travels[i];
-			if (choice <= acum / sum) {
+			if (r <= acum / sum) {
 				return RandomHelper.nextDoubleFromTo(0, 1) + i + displacement;
 			}
 		}
-		return 0;
+		return -1;
 	}
 
+	/**
+	 * Get random return to home time (unit: hours). Reference: <pending>
+	 */
 	public static double getRandomReturnToHomeTime(Shift workShift) {
 		int[] travels;
 		int displacement;
 		if (workShift == Shift.DAY) {
-			travels = Arrays.copyOfRange(dailyTravels, 13, 19);
+			travels = Arrays.copyOfRange(DAILY_TRAVELS, 13, 19);
 			displacement = 12;
 		} else {
-			travels = Arrays.copyOfRange(dailyTravels, 1, 6);
+			travels = Arrays.copyOfRange(DAILY_TRAVELS, 1, 6);
 			displacement = 1;
 		}
-
 		int sum = 0;
-		for (int num : travels)
-			sum += num;
-
-		double choice = RandomHelper.nextDoubleFromTo(0, 1);
+		for (int t : travels) {
+			sum += t;
+		}
+		double r = RandomHelper.nextDoubleFromTo(0, 1);
 		int acum = 0;
 		for (int i = 0; i < travels.length; i++) {
 			acum += travels[i];
-			if (choice <= acum / sum) {
+			if (r <= acum / sum) {
 				return RandomHelper.nextDoubleFromTo(0, 1) + i + displacement;
 			}
 		}
 		return 0;
 	}
 
-	
 	/**
 	 * Get random work shift. Reference: <pending>
 	 */

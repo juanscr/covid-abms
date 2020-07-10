@@ -17,6 +17,15 @@ import repast.simphony.space.gis.Geography;
 import simulation.EventScheduler;
 import util.TickConverter;
 
+/**
+ * Citizen
+ * 
+ * @author Paula Escudero
+ * @author Mateo Bonnett
+ * @author David Plazas
+ * @author Juan Sebastián Cárdenas
+ * @author David Andrés Romero
+ */
 public class Citizen {
 
 	/**
@@ -50,11 +59,6 @@ public class Citizen {
 	private boolean atHome;
 
 	/**
-	 * Work shift
-	 */
-	private Shift workShift;
-
-	/**
 	 * Wake up time
 	 */
 	private double wakeUpTime;
@@ -73,6 +77,11 @@ public class Citizen {
 	 * Ticks to incubation end
 	 */
 	private double incubationShift;
+
+	/**
+	 * Infections count
+	 */
+	private int infections;
 
 	/**
 	 * Homeplace
@@ -97,7 +106,7 @@ public class Citizen {
 	/**
 	 * Current zone
 	 */
-	private Zone zone;
+	private Zone currentZone;
 
 	/**
 	 * Scheduled actions
@@ -126,9 +135,9 @@ public class Citizen {
 		this.id = Probabilities.getRandomId();
 		this.age = Probabilities.getRandomAge();
 		this.atHome = true;
-		this.workShift = Probabilities.getRandomWorkShift();
-		this.wakeUpTime = Probabilities.getRandomWakeUpTime(this.workShift);
-		this.returnToHomeTime = Probabilities.getRandomReturnToHomeTime(this.workShift);
+		Shift workShift = Probabilities.getRandomWorkShift();
+		this.wakeUpTime = Probabilities.getRandomWakeUpTime(workShift);
+		this.returnToHomeTime = Probabilities.getRandomReturnToHomeTime(workShift);
 		initDisease();
 		scheduleRecurringEvents();
 	}
@@ -299,8 +308,8 @@ public class Citizen {
 	/**
 	 * Get current zone
 	 */
-	public Zone getZone() {
-		return this.zone;
+	public Zone getCurrentZone() {
+		return this.currentZone;
 	}
 
 	/**
@@ -308,8 +317,8 @@ public class Citizen {
 	 * 
 	 * @param zone Zone
 	 */
-	public void setZone(Zone zone) {
-		this.zone = zone;
+	public void setCurrentZone(Zone zone) {
+		this.currentZone = zone;
 	}
 
 	/**
@@ -319,6 +328,13 @@ public class Citizen {
 	 */
 	public void setGeometry(Geometry geometry) {
 		this.geometry = geometry;
+	}
+
+	/**
+	 * Get infections count
+	 */
+	public int getInfections() {
+		return this.infections;
 	}
 
 	/**
@@ -379,9 +395,9 @@ public class Citizen {
 		EventScheduler eventScheduler = EventScheduler.getInstance();
 		ISchedulableAction stepAction = eventScheduler.scheduleRecurringEvent(1, this, 1, "step");
 		ISchedulableAction wakeUpAction = eventScheduler.scheduleRecurringEvent(this.wakeUpTime, this,
-				ModelParameters.HOURS_IN_DAY, "wakeUp");
+				TickConverter.TICKS_PER_DAY, "wakeUp");
 		ISchedulableAction returnHomeAction = eventScheduler.scheduleRecurringEvent(this.returnToHomeTime, this,
-				ModelParameters.HOURS_IN_DAY, "returnHome");
+				TickConverter.TICKS_PER_DAY, "returnHome");
 		this.scheduledActions.add(stepAction);
 		this.scheduledActions.add(wakeUpAction);
 		this.scheduledActions.add(returnHomeAction);
@@ -393,7 +409,7 @@ public class Citizen {
 	private void randomWalk() {
 		double distance = 0.0;
 		if (this.atHome) {
-			distance = this.zone.getWalkingAverage();
+			distance = this.currentZone.getWalkingAverage();
 		} else {
 			distance = MAX_MOVEMENT_IN_DESTINATION;
 		}
@@ -415,6 +431,7 @@ public class Citizen {
 		for (Citizen citizen : citizens) {
 			if (citizen.diseaseStage == DiseaseStage.SUSCEPTIBLE && Probabilities.isGettingExposed(incubationShift)) {
 				citizen.setExposed();
+				this.infections++;
 			}
 		}
 	}
