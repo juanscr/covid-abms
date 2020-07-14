@@ -15,6 +15,7 @@ import geography.Zone;
 import model.Citizen;
 import model.DiseaseStage;
 import model.Heuristics;
+import model.Policy;
 import model.PolicyEnforcer;
 import output.OutputManager;
 import repast.simphony.context.Context;
@@ -93,24 +94,37 @@ public class SimulationBuilder implements ContextBuilder<Object> {
 		// Get simulation parameters
 		Parameters simParams = RunEnvironment.getInstance().getParameters();
 
-		// Policy enforcer
-		PolicyEnforcer policyEnforcer = PolicyEnforcer.getInstance();
-		// policyEnforcer.scheduleQuarantine(simParams.getInteger("quarantineStart"),
-		// simParams.getInteger("quarantineEnd"));
-		policyEnforcer.noPolicies();
+		// Schedule policies
+		PolicyEnforcer policyEnforcer = new PolicyEnforcer();
+		String selectedPolicy = simParams.getString("policy");
+		int policyStart = simParams.getInteger("policyStart");
+		int policyEnd = simParams.getInteger("policyEnd");
+		Policy policy = null;
+		switch (selectedPolicy) {
+		case "full-quarantine":
+			policy = Policy.FULL_QUARANTINE;
+			break;
+		case "id-based-curfew":
+			policy = Policy.ID_BASED_CURFEW;
+		default:
+			break;
+		}
+		if (policy != null) {
+			policyEnforcer.schedulePolicy(policy, policyStart, policyEnd);
+		}
 		context.add(policyEnforcer);
 
 		// Susceptible citizens
 		int susceptibleCount = simParams.getInteger("susceptibleCount");
 		for (int i = 0; i < susceptibleCount; i++) {
-			Citizen citizen = new Citizen(geography, DiseaseStage.SUSCEPTIBLE);
+			Citizen citizen = new Citizen(geography, DiseaseStage.SUSCEPTIBLE, policyEnforcer);
 			context.add(citizen);
 		}
 
 		// Infected citizens
 		int infectedCount = simParams.getInteger("infectedCount");
 		for (int i = 0; i < infectedCount; i++) {
-			Citizen citizen = new Citizen(geography, DiseaseStage.INFECTED);
+			Citizen citizen = new Citizen(geography, DiseaseStage.INFECTED, policyEnforcer);
 			context.add(citizen);
 		}
 

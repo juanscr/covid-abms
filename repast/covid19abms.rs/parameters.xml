@@ -7,19 +7,19 @@
 									
 		/>
 				<parameter name="infectedCount" displayName="Infected count" type="int" 
-						defaultValue="20" 
+						defaultValue="25" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 				<parameter name="policyEnd" displayName="Policy end (day)" type="int" 
-						defaultValue="50" 
+						defaultValue="80" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 				<parameter name="infectionRadius" displayName="Infection radius (meters)" type="double" 
-						defaultValue="40.0" 
+						defaultValue="100.0" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									

@@ -1,5 +1,5 @@
 package model;
 
 public enum Policy {
-	NONE, ID_BASED_RESTRICTION
+	NONE, FULL_QUARANTINE, ID_BASED_CURFEW
 }

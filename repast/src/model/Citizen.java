@@ -94,6 +94,11 @@ public class Citizen {
 	private NdPoint workplace;
 
 	/**
+	 * Policy enforcer
+	 */
+	private PolicyEnforcer policyEnforcer;
+
+	/**
 	 * Reference to geography projection
 	 */
 	private Geography<Object> geography;
@@ -116,13 +121,15 @@ public class Citizen {
 	/**
 	 * Create a new citizen agent
 	 * 
-	 * @param geography    Reference to geography projection
-	 * @param diseaseStage Disease stage
+	 * @param geography      Reference to geography projection
+	 * @param diseaseStage   Disease stage
+	 * @param policyEnforcer Policy enforcer
 	 */
-	public Citizen(Geography<Object> geography, DiseaseStage diseaseStage) {
+	public Citizen(Geography<Object> geography, DiseaseStage diseaseStage, PolicyEnforcer policyEnforcer) {
 		super();
 		this.diseaseStage = diseaseStage;
 		this.geography = geography;
+		this.policyEnforcer = policyEnforcer;
 		this.family = new ArrayList<>();
 		this.scheduledActions = new ArrayList<>();
 	}
@@ -146,7 +153,9 @@ public class Citizen {
 	 * Step
 	 */
 	public void step() {
-		randomWalk();
+		if (this.policyEnforcer.isAllowedToGoOut(this)) {
+			randomWalk();
+		}
 		if (this.diseaseStage == DiseaseStage.INFECTED) {
 			infect();
 		}
@@ -159,8 +168,7 @@ public class Citizen {
 	 * Wake up and go to workplace
 	 */
 	public void wakeUp() {
-		PolicyEnforcer policyEnforcer = PolicyEnforcer.getInstance();
-		if (policyEnforcer.isAllowedToGoOut(this)) {
+		if (this.policyEnforcer.isAllowedToGoOut(this)) {
 			this.atHome = false;
 			relocate(this.workplace);
 		}
@@ -195,15 +203,8 @@ public class Citizen {
 	public void setInfected() {
 		this.diseaseStage = DiseaseStage.INFECTED;
 		PatientType patientType = Probabilities.getRandomPatientType();
-		double daysToEvent = 0.0;
-		String method = "";
-		if (Probabilities.isGoingToDie(patientType)) {
-			daysToEvent = Probabilities.getRandomTimeToDeath(patientType);
-			method = "kill";
-		} else {
-			daysToEvent = Probabilities.getRandomTimeToImmune(patientType);
-			method = "setImmune";
-		}
+		String method = Probabilities.isGoingToDie(patientType) ? "kill" : "setImmune";
+		double daysToEvent = Probabilities.getRandomTimeToDischarge() - Probabilities.INFECTION_MIN;
 		double ticks = TickConverter.daysToTicks(daysToEvent);
 		EventScheduler eventScheduler = EventScheduler.getInstance();
 		eventScheduler.scheduleOneTimeEvent(ticks, this, method);

@@ -44,7 +44,7 @@ public abstract class Probabilities {
 	/**
 	 * Infection alpha parameter. Reference: <pending>
 	 */
-	public static final double INFECTION_ALPHA = 2.17;
+	public static final double INFECTION_ALPHA = 2.11;
 
 	/**
 	 * Infection beta parameter. Reference: <pending>
@@ -55,6 +55,16 @@ public abstract class Probabilities {
 	 * Infection minimum parameter. Reference: <pending>
 	 */
 	public static final double INFECTION_MIN = -2.4;
+
+	/**
+	 * Discharge alpha parameter. Reference: <pending>
+	 */
+	public static final double DISCHARGE_ALPHA = 1.99;
+
+	/**
+	 * Discharge beta parameter. Reference: <pending>
+	 */
+	public static final double DISCHARGE_BETA = 7.77;
 
 	/**
 	 * Incubation period mean parameter (unit: days). Reference: <pending>
@@ -140,7 +150,7 @@ public abstract class Probabilities {
 	}
 
 	/**
-	 * Is the patient going to die?. Reference: <pending>
+	 * Is the patient going to die? Reference: <pending>
 	 */
 	public static boolean isGoingToDie(PatientType patientType) {
 		double r = RandomHelper.nextDoubleFromTo(0, 1);
@@ -155,36 +165,25 @@ public abstract class Probabilities {
 	}
 
 	/**
-	 * Is the citizen getting exposed?. Reference: <pending>
+	 * Is the citizen getting exposed? Reference: <pending>
 	 */
 	public static boolean isGettingExposed(double incubationShift) {
 		double r = RandomHelper.nextDoubleFromTo(0, 1);
-		Gamma gamma = RandomHelper.createGamma(INFECTION_ALPHA, INFECTION_BETA);
-		if (incubationShift < INFECTION_MIN)
+		Gamma gamma = RandomHelper.createGamma(INFECTION_ALPHA, 1.0 / INFECTION_BETA);
+		if (incubationShift < INFECTION_MIN) {
 			return false;
+		}
 		double days = TickConverter.ticksToDays(incubationShift);
 		double p = gamma.pdf(days - INFECTION_MIN);
 		return r < p;
 	}
 
 	/**
-	 * Get random time to death (unit: days). Reference: <pending>
+	 * Get random time to discharge (unit: days). Reference: <pending>
 	 */
-	public static double getRandomTimeToDeath(PatientType patientType) {
-		switch (patientType) {
-		case CRITICAL_SYMPTOMS:
-		case SEVERE_SYMPTOMS:
-			return RandomHelper.nextDoubleFromTo(10, 20);
-		default:
-			return -1;
-		}
-	}
-
-	/**
-	 * Get random time to immune (unit: days). Reference: <pending>
-	 */
-	public static double getRandomTimeToImmune(PatientType patientType) {
-		return 10;
+	public static double getRandomTimeToDischarge() {
+		Gamma gamma = RandomHelper.createGamma(DISCHARGE_ALPHA, 1.0 / DISCHARGE_BETA);
+		return gamma.nextDouble();
 	}
 
 	/**
