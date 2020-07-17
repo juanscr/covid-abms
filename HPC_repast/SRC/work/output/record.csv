@@ -1,0 +1,2 @@
+buffer.size,count.of.agents,extent.x,extent.y,origin.x,origin.y,procs.x,procs.y,random.seed,stop.at
+1e-5,1,200,200,-100,-100,2,2,1,2
