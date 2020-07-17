@@ -1,7 +1,7 @@
 # Work
 
 ## Compile
-- Use the following command line to copy and compile files in folder [model](../hpc_repast/model/):
+- Use the following command line to copy and compile files in folder [model](../model/):
 ```console
 user@pc:~covid-abms/hpc_repast/work$ make rhpc
 ```
