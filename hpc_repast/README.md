@@ -11,7 +11,7 @@
 - An [example](work/run.txt) of how to run the model
 
 ## [Todo list](todo)
-- Activities related to the implementation o the natural history of the disease are [here](todo/work.md)
+- Activities related to the implementation of the natural history of the disease are [here](todo/work.md)
 
 ## References
 - Repast HPC [download](https://repast.github.io/download.html)
