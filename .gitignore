@@ -30,3 +30,4 @@ latestdata.csv
 *.zip
 **/.idea
 **/.ipynb_checkpoints
+.vscode
