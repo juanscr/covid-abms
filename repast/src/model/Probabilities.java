@@ -12,8 +12,8 @@ import util.TickConverter;
  * @author Paula Escudero
  * @author Mateo Bonnett
  * @author David Plazas
- * @author Juan Sebasti·n C·rdenas
- * @author David AndrÈs Romero
+ * @author Juan Sebasti√°n C√°rdenas
+ * @author David Andr√©s Romero
  */
 public abstract class Probabilities {
 
@@ -125,8 +125,8 @@ public abstract class Probabilities {
 		double t = Math.pow(MEAN_INCUBATION_PERIOD, 2) + Math.pow(STD_INCUBATION_PERIOD, 2);
 		double mu = Math.log(Math.pow(MEAN_INCUBATION_PERIOD, 2) / Math.sqrt(t));
 		double sigma = Math.log(t / Math.pow(MEAN_INCUBATION_PERIOD, 2));
-		Normal normalDistribution = RandomHelper.createNormal(mu, sigma);
-		double y = normalDistribution.nextDouble();
+		Normal normal = RandomHelper.createNormal(mu, sigma);
+		double y = normal.nextDouble();
 		return Math.exp(y);
 	}
 
