@@ -6,10 +6,15 @@ package util;
  * @author Paula Escudero
  * @author Mateo Bonnett
  * @author David Plazas
- * @author Juan Sebasti√°n C√°rdenas
- * @author David Andr√©s Romero
+ * @author Juan Sebasti·n C·rdenas
+ * @author David AndrÈs Romero
  */
 public class TickConverter {
+
+	/**
+	 * Ticks per week (unit: ticks)
+	 */
+	public static final int TICKS_PER_WEEK = 7;
 
 	/**
 	 * Ticks per day (unit: ticks)
