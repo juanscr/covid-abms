@@ -11,6 +11,7 @@
 *.bcf
 *.blg
 *.class
+*.code-workspace
 *.dvi
 .DS_Store
 *.fdb_latexmk
