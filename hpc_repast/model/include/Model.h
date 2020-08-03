@@ -1,4 +1,4 @@
-/* Demo_03_Model.h */
+/* Model.h */
 
 #ifndef DEMO_03_MODEL
 #define DEMO_03_MODEL
@@ -19,56 +19,39 @@
 
 /* Agent Package Provider */
 class RepastHPCAgentPackageProvider {
-	
-private:
-    repast::SharedContext<RepastHPCAgent>* agents;
-	
+	private:
+	repast::SharedContext<RepastHPCAgent>* agents;
+
 public:
-	
     RepastHPCAgentPackageProvider(repast::SharedContext<RepastHPCAgent>* agentPtr);
-	
     void providePackage(RepastHPCAgent * agent, std::vector<RepastHPCAgentPackage>& out);
-	
     void provideContent(repast::AgentRequest req, std::vector<RepastHPCAgentPackage>& out);
-	
 };
 
 /* Agent Package Receiver */
 class RepastHPCAgentPackageReceiver {
-	
-private:
-    repast::SharedContext<RepastHPCAgent>* agents;
-	
-public:
-	
-    RepastHPCAgentPackageReceiver(repast::SharedContext<RepastHPCAgent>* agentPtr);
-	
-    RepastHPCAgent * createAgent(RepastHPCAgentPackage package);
-	
-    void updateAgent(RepastHPCAgentPackage package);
-	
-};
+	private:
+	repast::SharedContext<RepastHPCAgent>* agents;
 
+public:
+
+    RepastHPCAgentPackageReceiver(repast::SharedContext<RepastHPCAgent>* agentPtr);
+    RepastHPCAgent * createAgent(RepastHPCAgentPackage package);
+    void updateAgent(RepastHPCAgentPackage package);
+
+};
 
 /* Data Collection */
-class DataSource_AgentTotals : public repast::TDataSource<int>{
-private:
-	repast::SharedContext<RepastHPCAgent>* context;
 
-public:
-	DataSource_AgentTotals(repast::SharedContext<RepastHPCAgent>* c);
-	int getData();
+class DataSource_AgentDiseaseStage : public repast::TDataSource<int>{
+	private:
+		repast::SharedContext<RepastHPCAgent>* context;
+		DiseaseStage diseaseStage;
+	public:
+		DataSource_AgentDiseaseStage(repast::SharedContext<RepastHPCAgent>* c, DiseaseStage ds);
+		int getData();
 };
-	
 
-class DataSource_AgentCTotals : public repast::TDataSource<int>{
-private:
-	repast::SharedContext<RepastHPCAgent>* context;
-	
-public:
-	DataSource_AgentCTotals(repast::SharedContext<RepastHPCAgent>* c);
-	int getData();
-};
 
 class RepastHPCModel{
 	int stopAt;
@@ -80,26 +63,32 @@ class RepastHPCModel{
 	double originY;
 	double extentX;
 	double extentY;
+	double maxX;
+	double maxY;
+	double infectionRadius;
+	double distance;
+	double rand_exposed;
 	int seed;
 	Probabilities probabilities;
+	TickConverter tc;
 
 	repast::Properties* props;
 	repast::SharedContext<RepastHPCAgent> context;
-	
 	RepastHPCAgentPackageProvider* provider;
 	RepastHPCAgentPackageReceiver* receiver;
 
 	repast::SVDataSet* agentValues;
     repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* continuousSpace;
-	
+
 public:
 	RepastHPCModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
 	~RepastHPCModel();
-	void init();
+	void init(repast::ScheduleRunner& runner);
 	void requestAgents();
 	void cancelAgentRequests();
 	void removeLocalAgents();
-	void doSomething();
+	int getProcess(double x, double y);
+	void step();
 	void initSchedule(repast::ScheduleRunner& runner);
 	void recordResults();
 };

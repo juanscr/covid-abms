@@ -2,7 +2,7 @@
 
 /**
  * Days to ticks
- * @param days Days 
+ * @param days Days
  */
 double TickConverter::daysToTicks(double days){
     return days * TickConverter::TICKS_PER_DAY;
@@ -10,7 +10,6 @@ double TickConverter::daysToTicks(double days){
 
 /**
  * Ticks to days
- *  
  * @param ticks Ticks
 */
 double TickConverter::ticksToDays(double ticks){

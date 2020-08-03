@@ -1,7 +1,5 @@
 #************************************************************************************************************
-#
 # Based on Repast HPC Tutorial Makefile
-#
 #************************************************************************************************************
 
 include ./env
@@ -23,7 +21,7 @@ clean_compiled_files:
 	rm -f ./bin/*.exe
 	rm -f *.o
 	rm -f ./object/*.o
-	
+
 .PHONY: clean
 clean: clean_compiled_files clean_output_files remove_subdirectories
 	rm -f *.cpp
@@ -31,7 +29,7 @@ clean: clean_compiled_files clean_output_files remove_subdirectories
 	rm -f *.props
 	rm -f ./props/*.props
 	rm -f ./include/*.h
-	
+
 .PHONY: remove_subdirectories
 remove_subdirectories:
 	rm -fr objects
@@ -47,12 +45,13 @@ remove_subdirectories:
 
 .PHONY: rhpc_compile
 rhpc_compile: clean_compiled_files
-	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I./include -c ./src/Main.cpp -o ./objects/Main.o
-	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I./include -c ./src/Model.cpp -o ./objects/Model.o
-	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I./include -c ./src/Agent.cpp -o ./objects/Agent.o
-	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I./include -c ./src/Probabilities.cpp -o ./objects/Probabilities.o
-	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I./include -c ./src/TickConverter.cpp -o ./objects/TickConverter.o
-	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/code_01.exe  ./objects/Main.o ./objects/Model.o ./objects/Agent.o ./objects/Probabilities.o ./objects/TickConverter.o $(REPAST_HPC_LIB) $(BOOST_LIBS)
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(THRUST_INCLUDE) -I./include -c ./src/Main.cpp -o ./objects/Main.o
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(THRUST_INCLUDE) -I./include -c ./src/Model.cpp -o ./objects/Model.o
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(THRUST_INCLUDE) -I./include -c ./src/Agent.cpp -o ./objects/Agent.o
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(THRUST_INCLUDE) -I./include -c ./src/Probabilities.cpp -o ./objects/Probabilities.o
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(THRUST_INCLUDE) -I./include -c ./src/TickConverter.cpp -o ./objects/TickConverter.o
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(THRUST_INCLUDE) -I./include -c ./src/Geography.cpp -o ./objects/Geography.o
+	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) $(THRUST_LIB_DIR) -o ./bin/code_01.exe  ./objects/Main.o ./objects/Model.o ./objects/Agent.o ./objects/Probabilities.o ./objects/TickConverter.o ./objects/Geography.o $(REPAST_HPC_LIB) $(BOOST_LIBS)
 
 .PHONY: rhpc
 rhpc : rhpc_copy rhpc_compile

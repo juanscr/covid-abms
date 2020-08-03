@@ -20,19 +20,15 @@ class TickConverter{
 
     /**
 	 * Days to ticks
-	 * 
 	 * @param days Days
 	 */
     double daysToTicks(double days);
 
     /**
 	 * Ticks to days
-	 * 
 	 * @param ticks Ticks
 	 */
     double ticksToDays(double ticks);
-
-
 
 };
 

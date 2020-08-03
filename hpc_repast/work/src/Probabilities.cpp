@@ -2,15 +2,15 @@
 
 double Probabilities::getRandomTriangular(double min, double mode, double max, double r){
     double beta = (mode - min) / (max - min);
-		
+
 	double t = 0.0;
 	if (r < beta) {
         t = std::sqrt(beta * r);
-        
+
     } else {
         t = std::sqrt((1 - beta) * (1 - r));
 	}
-		
+
     return min + (max - min) * t;
 }
 
@@ -18,7 +18,7 @@ double Probabilities::getRandomTriangular(double min, double mode, double max, d
  * Get random age (unit: age). Reference: <pending>
 */
 int Probabilities::getRandomAge(double r_range, double r_age){
-    
+
    double cummulativeProbability = 0;
    int age = -1;
 
@@ -44,7 +44,7 @@ double Probabilities::getRandomIncubationPeriod() {
     double t = std::pow(Probabilities::MEAN_INCUBATION_PERIOD, 2) + std::pow(Probabilities::STD_INCUBATION_PERIOD, 2);
     double mu = std::log(std::pow(Probabilities::MEAN_INCUBATION_PERIOD, 2) / std::sqrt(t));
     double sigma = std::log(t / std::pow(Probabilities::MEAN_INCUBATION_PERIOD, 2));
-    
+
     repast::NormalGenerator normalDistribution  = repast::Random::instance()->createNormalGenerator(mu, sigma);
 	double y = normalDistribution.next();
 
@@ -68,7 +68,6 @@ PatientType Probabilities::getRandomPatientType(double r1, double r2){
             return CRITICAL_SYMPTOMS;
         }
     }
-
 }
 
 /**
@@ -88,7 +87,6 @@ bool Probabilities::isGoingToDie(double r, PatientType patientType){
         return false;
         break;
     }
-
 }
 
 /**
@@ -104,9 +102,7 @@ bool Probabilities::isGettingExposed(double r, double incubationShift){
 }
 
 double Probabilities::getRandomWakeUpTime(Shift workShift){
-    
     int displacement;
-
     return -1;
 }
 
@@ -114,7 +110,6 @@ double Probabilities::getRandomWakeUpTime(Shift workShift){
  * Get random work shift. Reference: <pending>
 */
 Shift Probabilities::getRandomWorkShift(double r){
-    
     if (r < Probabilities::DAY_SHIFT_PROBABILITIES){
         return DAY;
     }else{

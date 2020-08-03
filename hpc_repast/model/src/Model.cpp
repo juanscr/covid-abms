@@ -1,5 +1,4 @@
 /* Demo_03_Model.cpp */
-
 #include <stdio.h>
 #include <vector>
 #include <boost/mpi.hpp>
@@ -14,14 +13,15 @@
 #include "Model.h"
 #include "Probabilities.h"
 
-RepastHPCAgentPackageProvider::RepastHPCAgentPackageProvider(repast::SharedContext<RepastHPCAgent>* agentPtr): agents(agentPtr){ }
+RepastHPCAgentPackageProvider::RepastHPCAgentPackageProvider(repast::SharedContext<RepastHPCAgent>* agentPtr): agents(agentPtr){}
 
 void RepastHPCAgentPackageProvider::providePackage(RepastHPCAgent * agent, std::vector<RepastHPCAgentPackage>& out){
     repast::AgentId id = agent->getId();
-    RepastHPCAgentPackage package(id.id(), id.startingRank(), id.agentType(), id.currentRank(), agent->getC(), agent->getTotal(), agent->getAge(),
+    RepastHPCAgentPackage package(id.id(), id.startingRank(), id.agentType(), id.currentRank(), agent->getProcessWork(), agent->getProcessHome(),
+	agent->getAge(),
 	agent->getAtHome(), agent->getWorkShit(), agent->getWakeUpTime(), agent->getReturnToHomeTime(),
-	agent->getDiseaseStage(), agent->getPatientType(), agent->getTimeToDeath(), agent->getTimeToImmune(), agent->getIncubationTime(), agent->getIncubatioShift(),
-	agent->getHomePlace(), agent->getWorkPlace());
+	agent->getDiseaseStage(), agent->getPatientType(), agent->getIncubationTime(), agent->getIncubatioShift(), agent->getTicksToInfected(), agent->getDiseaseStageEnd(), agent->getTicksToDiseaseEnd(), agent->getInfections(),
+	agent->getHomePlace(), agent->getWorkPlace(), agent->getXCoord(), agent->getYCoord());
     out.push_back(package);
 }
 
@@ -36,37 +36,81 @@ RepastHPCAgentPackageReceiver::RepastHPCAgentPackageReceiver(repast::SharedConte
 
 RepastHPCAgent * RepastHPCAgentPackageReceiver::createAgent(RepastHPCAgentPackage package){
     repast::AgentId id(package.id, package.rank, package.type, package.currentRank);
-    return new RepastHPCAgent(id, package.c, package.total, package.age, package.diseaseStage);
+	RepastHPCAgent * agent = new RepastHPCAgent(id);
+	/* Recover attributes */
+	// Initialize agent attributes
+	agent->setProcessWork(package.processWork);
+	agent->setProcessHome(package.processHome);
+	agent->setAge(package.age);
+	agent->setDiseaseStage(package.diseaseStage);
+
+	// Locations
+	agent->setXCoord(package.xcoord);
+	agent->setYCoord(package.ycoord);
+	agent->setHomePlace(package.homeplace);
+	agent->setWorkPlace(package.workplace);
+	agent->setAtHome(package.atHome);
+
+	// Times
+	agent->setWorkShift(package.workShift);
+	agent->setWakeUpTime(package.wakeUpTime);
+	agent->setReturnToHomeTime(package.returnToHomeTime);
+
+	// Disease stage
+	agent->setIncubationShift(package.incubationShift);
+	agent->setTicksToInfected(package.ticksToInfected);
+	agent->setDiseaseStageEnd(package.diseaseStageEnd);
+	agent->setTicksToDiseaseEnd(package.ticksToDiseaseEnd);
+	agent->setInfections(package.infections);
+
+    return agent;
 }
 
 void RepastHPCAgentPackageReceiver::updateAgent(RepastHPCAgentPackage package){
+
     repast::AgentId id(package.id, package.rank, package.type);
     RepastHPCAgent * agent = agents->getAgent(id);
-    agent->set(package.currentRank, package.c, package.total, package.age, package.diseaseStage);
+    agent->set(package.currentRank);
+
+	// Recover attributes
+	// Initialize agent attributes
+	agent->setAge(package.age);
+	agent->setDiseaseStage(package.diseaseStage);
+	agent->setProcessWork(package.processWork);
+	agent->setProcessHome(package.processHome);
+
+	// Locations
+	agent->setXCoord(package.xcoord);
+	agent->setYCoord(package.ycoord);
+	agent->setHomePlace(package.homeplace);
+	agent->setWorkPlace(package.workplace);
+	agent->setAtHome(package.atHome);
+
+
+	// Times
+	agent->setWorkShift(package.workShift);
+	agent->setWakeUpTime(package.wakeUpTime);
+	agent->setReturnToHomeTime(package.returnToHomeTime);
+
+	// Disease stage
+	agent->setIncubationShift(package.incubationShift);
+	agent->setTicksToInfected(package.ticksToInfected);
+	agent->setDiseaseStageEnd(package.diseaseStageEnd);
+	agent->setTicksToDiseaseEnd(package.ticksToDiseaseEnd);
+	agent->setInfections(package.infections);
+
 }
 
+DataSource_AgentDiseaseStage::DataSource_AgentDiseaseStage(repast::SharedContext<RepastHPCAgent>* c, DiseaseStage ds) : context(c), diseaseStage(ds){ }
 
-DataSource_AgentTotals::DataSource_AgentTotals(repast::SharedContext<RepastHPCAgent>* c) : context(c){ }
-
-int DataSource_AgentTotals::getData(){
+int DataSource_AgentDiseaseStage::getData(){
 	int sum = 0;
 	repast::SharedContext<RepastHPCAgent>::const_local_iterator iter    = context->localBegin();
 	repast::SharedContext<RepastHPCAgent>::const_local_iterator iterEnd = context->localEnd();
 	while( iter != iterEnd) {
-		sum+= (*iter)->getTotal();
-		iter++;
-	}
-	return sum;
-}
-
-DataSource_AgentCTotals::DataSource_AgentCTotals(repast::SharedContext<RepastHPCAgent>* c) : context(c){ }
-
-int DataSource_AgentCTotals::getData(){
-	int sum = 0;
-	repast::SharedContext<RepastHPCAgent>::const_local_iterator iter    = context->localBegin();
-	repast::SharedContext<RepastHPCAgent>::const_local_iterator iterEnd = context->localEnd();
-	while( iter != iterEnd) {
-		sum+= (*iter)->getC();
+		if ((*iter)->getDiseaseStage() == diseaseStage){
+			sum++;
+		}
 		iter++;
 	}
 	return sum;
@@ -80,7 +124,8 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	countOfAgents = repast::strToInt(props->getProperty("count.of.agents"));
 
 	bufferSize = repast::strToDouble(props->getProperty("buffer.size"));
-	
+	infectionRadius = repast::strToDouble(props->getProperty("infection.radius"));
+
 	// Number of processors
 	procsX = repast::strToInt(props->getProperty("procs.x"));
 	procsY = repast::strToInt(props->getProperty("procs.y"));
@@ -91,41 +136,50 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	extentX = repast::strToDouble(props->getProperty("extent.x"));
 	extentY = repast::strToDouble(props->getProperty("extent.y"));
 
+	maxX = originX + extentX*0.99999;
+	maxY = originY + extentY*0.99999;
+
 	// Distributions
-	
 	initializeRandom(*props, comm);
-	//seed = repast::strToInt(props->getProperty("random.seed"));
-	//std::srand(seed);
-	
+
 	if(repast::RepastProcess::instance()->rank() == 0) props->writeToSVFile("./output/record.csv");
 	provider = new RepastHPCAgentPackageProvider(&context);
 	receiver = new RepastHPCAgentPackageReceiver(&context);
-	
+
     repast::Point<double> origin(originX, originY);
     repast::Point<double> extent(extentX, extentY);
     repast::GridDimensions gd(origin, extent);
-    
+
     std::vector<int> processDims;
     processDims.push_back(procsX);
     processDims.push_back(procsY);
-    
+
     continuousSpace = new repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >("AgentContinuousSpace", gd, processDims, bufferSize, comm);
    	context.addProjection(continuousSpace);
-    
+
 	// Data collection
 	// Create the data set builder
 	std::string fileOutputName("./output/agent_total_data.csv");
 	repast::SVDataSetBuilder builder(fileOutputName.c_str(), ",", repast::RepastProcess::instance()->getScheduleRunner().schedule());
-	
-	// Create the individual data sets to be added to the builder
-	DataSource_AgentTotals* agentTotals_DataSource = new DataSource_AgentTotals(&context);
-	builder.addDataSource(createSVDataSource("Total", agentTotals_DataSource, std::plus<int>()));
 
-	DataSource_AgentCTotals* agentCTotals_DataSource = new DataSource_AgentCTotals(&context);
-	builder.addDataSource(createSVDataSource("C", agentCTotals_DataSource, std::plus<int>()));
+	// Create the individual data sets to be added to the builder
+	DataSource_AgentDiseaseStage* agentSusceptible = new DataSource_AgentDiseaseStage(& context, SUSCEPTIBLE);
+	builder.addDataSource(createSVDataSource("Susceptible", agentSusceptible, std::plus<int>()));
+
+	DataSource_AgentDiseaseStage* agentExposed = new DataSource_AgentDiseaseStage(& context, EXPOSED);
+	builder.addDataSource(createSVDataSource("Exposed", agentExposed, std::plus<int>()));
+
+	DataSource_AgentDiseaseStage* agentInfected = new DataSource_AgentDiseaseStage(& context, INFECTED);
+	builder.addDataSource(createSVDataSource("Infected", agentInfected, std::plus<int>()));
+
+	DataSource_AgentDiseaseStage* agentImmune = new DataSource_AgentDiseaseStage(& context, IMMUNE);
+	builder.addDataSource(createSVDataSource("Immune", agentImmune, std::plus<int>()));
+
+	DataSource_AgentDiseaseStage* agentDead = new DataSource_AgentDiseaseStage(& context, DEAD);
+	builder.addDataSource(createSVDataSource("Dead", agentDead, std::plus<int>()));
 
 	// Use the builder to create the data set
-	agentValues = builder.createDataSet();	
+	agentValues = builder.createDataSet();
 }
 
 RepastHPCModel::~RepastHPCModel(){
@@ -135,85 +189,244 @@ RepastHPCModel::~RepastHPCModel(){
 	delete agentValues;
 }
 
-void RepastHPCModel::init(){
+void RepastHPCModel::init(repast::ScheduleRunner& runner){
 	// Initialize agents
+
+	// Check if agent location is feasible
+	std::vector<double> agentWorkLoc;
 
 	// Current rank
 	int crank = repast::RepastProcess::instance()->rank();
 
-	// Lower x coordinate
+	// Lower x and y coordinates
 	double init_x = continuousSpace->dimensions().origin().getX();
 	double init_y = continuousSpace->dimensions().origin().getY();
 
-	double end_x = init_x +  continuousSpace->dimensions().extents().getX();
+	// Upper x and y coordinates
+	double end_x = init_x + continuousSpace->dimensions().extents().getX();
 	double end_y = init_y + continuousSpace->dimensions().extents().getY();
 
-	double xcoord = 0;
-	double ycoord = 0;
-
-	int age = 0;
+	// Initialize coordinate
+	double xhome = 0;
+	double yhome = 0;
+	double xwork = 0;
+	double ywork = 0;
+	int workProcess = -1;
 
 	for(int i = 0; i < countOfAgents; i++){
-		// Position
-		xcoord = repast::Random::instance()->nextDouble()*(end_x - init_x) + init_x;
-		ycoord = repast::Random::instance()->nextDouble()*(end_y - init_y) + init_y;
+		agentWorkLoc.clear();
+		//std::cout << "rank " << crank << " init x " << init_x << " end x " << end_x << " init y " << init_y << " end y" << end_y << std::endl;
+		// Homeplace coordinates
+		do{
+			agentWorkLoc.clear();
+			xhome = repast::Random::instance()->nextDouble()*(end_x - init_x) + init_x;
+			yhome = repast::Random::instance()->nextDouble()*(end_y - init_y) + init_y;
+			agentWorkLoc.push_back(xhome);
+			agentWorkLoc.push_back(yhome);
+		}while(!continuousSpace->bounds().contains(agentWorkLoc));
 
-		// Define age
-		age = probabilities.getRandomAge(repast::Random::instance()->nextDouble(), repast::Random::instance()->nextDouble());
+		//std::cout << "rank " << crank << "pased home " << std::endl;
+		do{
+			agentWorkLoc.clear();
+			xwork = repast::Random::instance()->nextDouble()*(maxX - originX) + originX;
+			ywork = repast::Random::instance()->nextDouble()*(maxY - originY) + originY;
+			agentWorkLoc.push_back(xwork);
+			agentWorkLoc.push_back(ywork);
+		}while(!continuousSpace->bounds().contains(agentWorkLoc));
 
-        repast::Point<double> initialLocation(xcoord, ycoord);
+        repast::Point<double> initialLocation(xhome, yhome);
 
 		// Create agent
 		repast::AgentId id(i, crank, 0);
 		id.currentRank(crank);
-		RepastHPCAgent* agent = new RepastHPCAgent(id, 100, 200, age,  SUSCEPTIBLE);
+		RepastHPCAgent* agent = new RepastHPCAgent(id);
 
-		// Set initial attributes to agents
-		agent->setAtHome(true);
-		agent -> setWorkShift(probabilities.getRandomWorkShift(repast::Random::instance()->nextDouble()));
-		
+		// Initialize agents
+		agent->setProcessHome(crank);
+		agent->initAgent(xhome, yhome, xwork, ywork);
+		double randomDisease = repast::Random::instance()->nextDouble();
+		if(randomDisease <= 0.001){
+			agent->setDiseaseStage(INFECTED);
+		}else if (randomDisease <= 0.9){
+			agent->setDiseaseStage(SUSCEPTIBLE);
+		}else{
+			agent->setDiseaseStage(EXPOSED);
+		}
+
+		workProcess = getProcess(xwork, ywork);
+		agent->setProcessWork(workProcess);
+
+		//std::cout << "rank " << crank <<  " wx " << agent->getWorkPlace().at(0) << " wy " << agent->getWorkPlace().at(1) << " pr " << workProcess << std::endl;
+		// initDisease
+		agent->initDisease();
+
 		// Add agent to context
 		context.addAgent(agent);
         continuousSpace->moveTo(id, initialLocation);
 	}
 }
 
-void RepastHPCModel::doSomething(){
-	// Current rank
-	int whichRank = repast::RepastProcess::instance()->rank();
+int RepastHPCModel::getProcess(double x, double y){
+	int pX;
+	int pY;
 
-	std::vector<RepastHPCAgent*> agents;
-	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
-	
-    std::vector<RepastHPCAgent*>::iterator it = agents.begin();
-    while(it != agents.end()){
-
-		PatientType x = probabilities.getRandomPatientType(repast::Random::instance()->nextDouble(), repast::Random::instance()->nextDouble());
-
-		if (whichRank == 0){
-			std::cout << "Agent random number is " << x << "\n" << std::endl; 
+	for (int i = 0; i<procsX; i++){
+		if ( originX + (extentX*i)/procsX <= x && x <= originX + (extentX*(i+1))/procsX ){
+			pX = i;
+			break;
 		}
-		
-		(*it)->move(continuousSpace);
-		it++;
-    }
+	}
 
-	continuousSpace->balance();
-    repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
-    repast::RepastProcess::instance()->synchronizeProjectionInfo<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
-	repast::RepastProcess::instance()->synchronizeAgentStates<RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(*provider, *receiver);  
+	for (int i = 0; i<procsY; i++){
+		if ( originY + (extentY*i)/procsY <= y && y<= originY + (extentY*(i+1))/procsY ){
+			pY = i;
+			break;
+		}
+	}
+
+	return procsY*pX + pY;
+}
+
+
+void RepastHPCModel::step(){
+	int crank = repast::RepastProcess::instance()->rank();
+	int ctick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+
+	if (crank == 0){
+		std::cout << "tick " << ctick  << std::endl;
+	}
+
+	// Get all agents of the current rank
+	std::vector<RepastHPCAgent*> agents;
+	// Vector of available agents to infect
+	std::vector<RepastHPCAgent*> agents_av;
+	// Iterator for susceptible agents
+	std::vector<RepastHPCAgent*>::iterator it1;
+
+	// Select all agents
+	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
+
+	// Iterator for agents is rank
+	std::vector<RepastHPCAgent*>::iterator it;
+
+	// Start iterator
+	it = agents.begin();
+
+	while(it != agents.end() && agents.size()>0){
+		// Ask agents to wake up
+		if ( (*it)->getDiseaseStage()!=DEAD && (ctick-1)%tc.TICKS_PER_DAY <= (*it)->getWakeUpTime()  && (*it)->getWakeUpTime()  <=  ctick%tc.TICKS_PER_DAY){
+			repast::RepastProcess::instance()->moveAgent((*it)->getId(), (*it)->getProcessWork());
+			(*it)->wakeUp(continuousSpace);
+			}
+		it++;
+	}
+
+	// Synchronize agents that moved to other processes
+	repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
+
+	agents.clear();
+	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
+	it = agents.begin();
+	while(it != agents.end() && agents.size()>0){
+		// Ask agents to return home
+		if ((*it)->getDiseaseStage()!=DEAD && (ctick-1)%tc.TICKS_PER_DAY <= (*it)->getWakeUpTime()  && (*it)->getWakeUpTime()  <=  ctick%tc.TICKS_PER_DAY){
+			repast::RepastProcess::instance()->moveAgent((*it)->getId(), (*it)->getProcessHome());
+			(*it)->returnHome(continuousSpace);
+			}
+		it++;
+	}
+	// Synchronize agents that moved to other processes
+	repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
+
+	// Vector of agents to remove
+	std::vector<RepastHPCAgent*> agents_del;
+	// Iterator of agents to remove
+	std::vector<RepastHPCAgent*>::iterator it_del;
+	std::vector<RepastHPCAgent*>::iterator toErase;
+
+	agents.clear();
+	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
+	it = agents.begin();
+
+	while (it != agents.end()){
+		if ((*it)->getDiseaseStage() == SUSCEPTIBLE){
+			agents_av.push_back(*it);
+		}
+			it++;
+	}
+
+	it = agents.begin();
+
+	// Actions
+	while(it != agents.end()){
+		// Update agent disease stage
+		if ((*it)->isActiveCase()){
+			(*it)->diseaseActions(ctick);
+			}
+
+		// Ask agents to move
+		(*it)->move(continuousSpace, originX, maxX, originY, maxY);
+
+		if ((*it)->getDiseaseStage() == INFECTED){
+			it1 = agents_av.begin();
+			agents_del.clear();
+
+			while(it1 != agents_av.end()){
+				// Get distance between two agents
+				distance = (*it)->getDistance((*it1)->getXCoord(), (*it1)->getYCoord());
+
+				// Rand for getting exposed
+				rand_exposed = repast::Random::instance()->nextDouble();
+
+					if (distance <= infectionRadius && probabilities.isGettingExposed(rand_exposed, (*it)->getIncubatioShift())){
+						// Increase infections
+						(*it)->setInfections( (*it)->getInfections() + 1);
+
+						// Set exposed
+						(*it1)->setExposed();
+
+						// Remove from vector of susceptibles
+						agents_del.push_back(*it1);
+					}
+
+					it1++;
+				}
+
+				// Delete suceptible agents that became exposed
+				it_del = agents_del.begin();
+				while(it_del != agents_del.end() && agents_del.size()>0){
+					toErase = std::find(agents_av.begin(), agents_av.end(), *it_del);
+
+					if (toErase != agents_av.end()){
+						agents_av.erase(toErase);
+					}
+
+					it_del++;
+				}
+			}
+
+			// Update incubation shift
+			if ((*it)->isActiveCase()){
+				(*it)->stepIncubationShift(1);
+			}
+
+			it++;
+		}
+		continuousSpace->balance();
+		repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
+		repast::RepastProcess::instance()->synchronizeProjectionInfo<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
+		repast::RepastProcess::instance()->synchronizeAgentStates<RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(*provider, *receiver);
 }
 
 void RepastHPCModel::initSchedule(repast::ScheduleRunner& runner){
-	//runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCModel> (this, &RepastHPCModel::requestAgents)));
-	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCModel> (this, &RepastHPCModel::doSomething)));
-	//runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCModel> (this, &RepastHPCModel::moveAgents)));
+	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCModel> (this, &RepastHPCModel::step)));
+
 	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCModel> (this, &RepastHPCModel::recordResults)));
 	runner.scheduleStop(stopAt);
-	
+
 	// Data collection
-	runner.scheduleEvent(1.5, 5, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentValues, &repast::DataSet::record)));
-	runner.scheduleEvent(10.6, 10, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentValues, &repast::DataSet::write)));
+	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentValues, &repast::DataSet::record)));
+	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentValues, &repast::DataSet::write)));
 	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentValues, &repast::DataSet::write)));
 }
 
@@ -224,6 +437,6 @@ void RepastHPCModel::recordResults(){
 		keyOrder.push_back("RunNumber");
 		keyOrder.push_back("stop.at");
 		keyOrder.push_back("Result");
-		props->writeToSVFile("./output/results.csv", keyOrder);	
+		props->writeToSVFile("./output/results.csv", keyOrder);
     }
 }
