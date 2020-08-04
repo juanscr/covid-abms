@@ -108,7 +108,7 @@ double Probabilities::getRandomGamma(double alpha, double theta) {
         do {
             double u = repast::Random::instance() -> nextDouble();
             double u1 = repast::Random::instance() -> nextDouble();
-            u2 = u1 + h1 * u - h2;
+            double u2 = u1 + h1 * u - h2;
             if (u2 < 0 or u2 > 1)
                 continue;
             x = a * w;

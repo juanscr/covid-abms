@@ -1,1 +1,0 @@
-mpirun -n 4 ./bin/code_01.exe ./props/config.props ./props/model.props stop.at=2 count.of.agents=1 buffer.size=1e-5 procs.x=2 procs.y=2 origin.x=-100 origin.y=-100 extent.x=200 extent.y=200 random.seed=1
