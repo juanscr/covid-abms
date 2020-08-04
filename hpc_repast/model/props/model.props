@@ -2,12 +2,8 @@
 stop.at = 2
 count.of.agents = 100
 buffer.size = 1e-5
-procs.x = 2
+procs.x = 5
 procs.y = 2
-origin.x = -100
-origin.y = -100
-extent.x = 200
-extent.y = 200
 origin.x = -75.7193741
 origin.y = 6.1670811
 extent.x = 0.2459658
