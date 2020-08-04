@@ -132,6 +132,8 @@ class Probabilities{
         double getRandomReturnToHomeTime(Shift workShift);
 
         double getRandomGamma(double alpha, double theta);
+        double getGammaPDF(double x, double alpha, double theta);
+        double getRandomTimeToDischarge();
         Probabilities();
 
 
