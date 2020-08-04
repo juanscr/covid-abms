@@ -32,13 +32,8 @@ void RepastHPCAgent::initAgent(double xhome, double yhome, double xwork, double 
 	setAtHome(true);
 	setWorkShift(probabilities.getRandomWorkShift(repast::Random::instance()->nextDouble()));
 
-	if (getWorkShit() == DAY){
-        setWakeUpTime(repast::Random::instance()->nextDouble()*(10-4) + 4);
-        setReturnToHomeTime(repast::Random::instance()->nextDouble()*(19-13) + 13);
-    }else{
-        setWakeUpTime(repast::Random::instance()->nextDouble()*(22-18) + 18);
-        setReturnToHomeTime(repast::Random::instance()->nextDouble()*(6-1) + 1);
-    }
+    setWakeUpTime(probabilities.getRandomWakeUpTime(getWorkShit()));
+    setReturnToHomeTime(probabilities.getRandomReturnToHomeTime(getWorkShit()));
 
 }
 

@@ -150,9 +150,87 @@ bool Probabilities::isGettingExposed(double r, double incubationShift){
     return true;
 }
 
+/**
+ * * Get random wake up time (unit: hours). Reference: <pending>
+*/
 double Probabilities::getRandomWakeUpTime(Shift workShift){
 
-    int displacement;
+    double displacement;
+    int init;
+    int end;
+
+    if (workShift == DAY){
+        init = 4;
+        end = 10;
+        displacement = 3;
+    }else{
+        init = 18;
+        end = 22;
+        displacement = 17;
+    }
+
+    int size = end - init;
+    int travels[size];
+    for (int i = 0; i < size; i++){
+        travels[i] = Probabilities::DAILY_TRAVELS[init + i];
+    }
+
+    double sum = 0;
+    for (int i: travels){
+        sum += i;
+    }
+
+    double r = repast::Random::instance()->nextDouble();
+    double acum = 0;
+
+    for (int i = 0; i < size; i++){
+        acum += travels[i];
+        if (r <= acum/sum){
+            return repast::Random::instance()->nextDouble() + displacement + i;
+        }
+    }
+
+    return -1;
+}
+
+/**
+ * Get random return to home time (unit: hours). Reference: <pending>
+*/
+double Probabilities::getRandomReturnToHomeTime(Shift workShift){
+    double displacement;
+    int init;
+    int end;
+
+    if (workShift == DAY){
+        init = 13;
+        end = 19;
+        displacement = 12;
+    }else{
+        init = 1;
+        end = 6;
+        displacement = 1;
+    }
+
+    int size = end - init;
+    int travels[size];
+    for (int i = 0; i < size; i++){
+        travels[i] = Probabilities::DAILY_TRAVELS[init + i];
+    }
+
+    double sum = 0;
+    for (int i: travels){
+        sum += i;
+    }
+
+    double r = repast::Random::instance()->nextDouble();
+    double acum = 0;
+
+    for (int i = 0; i < size; i++){
+        acum += travels[i];
+        if (r <= acum/sum){
+            return repast::Random::instance()->nextDouble() + displacement + i;
+        }
+    }
 
     return -1;
 }

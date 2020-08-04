@@ -37,15 +37,15 @@ void Geography::genDistance(double minX, double maxX, double minY, double maxY, 
 
     // Generate new position
     if (rlat > 0.5){
-        *newX = min( max(x + dlat, minX), maxX);
+        *newX = min(max(x + dlat, minX), maxX);
     }else{
-        *newX = min( max(x - dlat, minX), maxX);
+        *newX = min(max(x - dlat, minX), maxX);
     }
 
     if (rlon > 0.5){
-        *newY = min( max(y + dlon, minY), maxY);
+        *newY = min(max(y + dlon, minY), maxY);
     }else{
-        *newY = min( max(y - dlon, minY), maxY);
+        *newY = min(max(y - dlon, minY), maxY);
     }
 
 }

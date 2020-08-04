@@ -215,8 +215,7 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 
 	for(int i = 0; i < countOfAgents; i++){
 		agentWorkLoc.clear();
-		//std::cout << "rank " << crank << " init x " << init_x << " end x " << end_x << " init y " << init_y << " end y" << end_y << std::endl;
-		// Homeplace coordinates
+		//Find homeplace within bounds
 		do{
 			agentWorkLoc.clear();
 			xhome = repast::Random::instance()->nextDouble()*(end_x - init_x) + init_x;
@@ -225,7 +224,7 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 			agentWorkLoc.push_back(yhome);
 		}while(!continuousSpace->bounds().contains(agentWorkLoc));
 
-		//std::cout << "rank " << crank << "pased home " << std::endl;
+		////Find workplace within bounds
 		do{
 			agentWorkLoc.clear();
 			xwork = repast::Random::instance()->nextDouble()*(maxX - originX) + originX;
@@ -244,10 +243,12 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 		// Initialize agents
 		agent->setProcessHome(crank);
 		agent->initAgent(xhome, yhome, xwork, ywork);
+
+		// Initialize random disease stage
 		double randomDisease = repast::Random::instance()->nextDouble();
 		if(randomDisease <= 0.001){
 			agent->setDiseaseStage(INFECTED);
-		}else if (randomDisease <= 0.9){
+		}else if (randomDisease <= 0.95){
 			agent->setDiseaseStage(SUSCEPTIBLE);
 		}else{
 			agent->setDiseaseStage(EXPOSED);
@@ -256,7 +257,6 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 		workProcess = getProcess(xwork, ywork);
 		agent->setProcessWork(workProcess);
 
-		//std::cout << "rank " << crank <<  " wx " << agent->getWorkPlace().at(0) << " wy " << agent->getWorkPlace().at(1) << " pr " << workProcess << std::endl;
 		// initDisease
 		agent->initDisease();
 
