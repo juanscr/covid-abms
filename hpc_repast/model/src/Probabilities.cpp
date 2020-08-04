@@ -96,12 +96,13 @@ bool Probabilities::isGoingToDie(double r, PatientType patientType){
 */
 double Probabilities::getRandomGamma(double alpha, double theta) {
     double x = 0;
+    double u2;
     if (alpha >= 0.5) {
         double a = alpha - 0.5;
         double b = alpha / a;
         double c = 2.0 / a;
         double d = c + 2;
-        double s = np.sqrt(alpha);
+        double s = std::sqrt(alpha);
         double h1 = (0.865 + 0.064 / alpha) / s;
         double h2 = (0.4343 - 0.105 / s) / s;
         do {

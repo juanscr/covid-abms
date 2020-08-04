@@ -1,1 +1,1 @@
-mpirun -n 10 ./bin/code_01.exe ./props/config.props ./props/model.props stop.at=480 count.of.agents=1000 buffer.size=1e-5 procs.x=5 procs.y=2 random.seed=1
+mpirun -n 10 ./bin/code_01.exe ./props/config.props ./props/model.props stop.at=240 count.of.agents=1000 buffer.size=1e-5 procs.x=5 procs.y=2 random.seed=1

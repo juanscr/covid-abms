@@ -68,6 +68,7 @@ PatientType Probabilities::getRandomPatientType(double r1, double r2){
             return CRITICAL_SYMPTOMS;
         }
     }
+
 }
 
 /**
@@ -87,7 +88,55 @@ bool Probabilities::isGoingToDie(double r, PatientType patientType){
         return false;
         break;
     }
+
 }
+
+/**
+ * Generates a random gamma variable with a given shape and scale parameter respectively
+*/
+double Probabilities::getRandomGamma(double alpha, double theta) {
+    double x = 0;
+    double u2;
+    if (alpha >= 0.5) {
+        double a = alpha - 0.5;
+        double b = alpha / a;
+        double c = 2.0 / a;
+        double d = c + 2;
+        double s = std::sqrt(alpha);
+        double h1 = (0.865 + 0.064 / alpha) / s;
+        double h2 = (0.4343 - 0.105 / s) / s;
+        do {
+            double u = repast::Random::instance() -> nextDouble();
+            double u1 = repast::Random::instance() -> nextDouble();
+            u2 = u1 + h1 * u - h2;
+            if (u2 < 0 or u2 > 1)
+                continue;
+            x = a * w;
+        } while (c * u2 > d - w - 1 / w && c * std::log(u2) > std::log(w) - w + 1);
+    }
+    else {
+        double z = 0.07 + 0.75 * std::sqrt(1 - alpha);
+        double b = 1 + std::exp(-z) * alpha / z;
+        bool condition = true;
+        do {
+            double u = repast::Random::instance() -> nextDouble();
+            double v = repast::Random::instance() -> nextDouble();
+            double p = b * u;
+            if (p <= 1) {
+                x = z * std::pow(p, 1 / alpha);
+                condition = v > (2 - x) / (2 + x) && v > std::exp(-x);
+            }
+            else {
+                x = -std::log(z * (b - p) / alpha);
+                double y = x / z;
+                condition = v * (alpha + y - alpha * y) >= 1 && v > std::pow(y, 1 / alpha);
+            }
+        } while (condition);
+    }
+
+    return theta * x;
+}
+
 
 /**
  * Is the citizen getting exposed? Reference: <pending>
@@ -102,7 +151,9 @@ bool Probabilities::isGettingExposed(double r, double incubationShift){
 }
 
 double Probabilities::getRandomWakeUpTime(Shift workShift){
+
     int displacement;
+
     return -1;
 }
 
@@ -110,6 +161,7 @@ double Probabilities::getRandomWakeUpTime(Shift workShift){
  * Get random work shift. Reference: <pending>
 */
 Shift Probabilities::getRandomWorkShift(double r){
+
     if (r < Probabilities::DAY_SHIFT_PROBABILITIES){
         return DAY;
     }else{

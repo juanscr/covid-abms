@@ -1,8 +1,0 @@
-#ifndef DISEASE_STAGE
-#define DISEASE_STAGE
-
-enum DiseaseStage{
-    SUSCEPTIBLE, EXPOSED, INFECTED, IMMUNE, DEAD
-};
-
-#endif

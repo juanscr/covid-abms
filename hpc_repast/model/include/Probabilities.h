@@ -122,6 +122,7 @@ class Probabilities{
 
         Shift getRandomWorkShift(double r);
         double getRandomWakeUpTime(Shift workShift);
+        double getRandomGamma(double alpha, double theta);
         Probabilities();
 
 

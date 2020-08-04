@@ -24,6 +24,7 @@ class Probabilities{
 
     /**
 	 * Age probabilities (unit: probability). Reference: <pending>
+     * 
 	 */
     const double age_probabilities [9] = {0.1443, 0.169, 0.1728, 0.1487,0.1221, 0.1104, 0.0728, 0.0393, 0.0206};
 
@@ -33,7 +34,7 @@ class Probabilities{
     const int DAILY_TRAVELS [24] = { 335, 2169, 3704, 9833, 70018, 328893, 610550, 481395, 314939, 244620,
     245991, 322370, 318179, 313987, 327201, 309527, 395493, 613719, 466570, 210368, 128377, 93656, 60591,
     23699 };
-
+    
     /**
 	 * Day shift probability (unit: probability). Reference: <pending>
 	 */
@@ -86,6 +87,7 @@ class Probabilities{
 
         /**
          * Get random number based on a triangular distribution
+         * 
          * @param min  Minimum
          * @param mode Mode
          * @param max  Maximum
@@ -120,7 +122,9 @@ class Probabilities{
 
         Shift getRandomWorkShift(double r);
         double getRandomWakeUpTime(Shift workShift);
+        double getRandomGamma(double alpha, double theta);
         Probabilities();
+
 
 };
 
