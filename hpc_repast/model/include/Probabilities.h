@@ -14,6 +14,7 @@
 #include "TickConverter.h"
 
 class Probabilities{
+    TickConverter tickConverter;
 
     /**
 	 * Age ranges (unit: age). Reference: <pending>
