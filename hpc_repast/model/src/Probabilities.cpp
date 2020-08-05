@@ -155,14 +155,21 @@ bool Probabilities::isGettingExposed(double r, double incubationShift){
         return false;
     }
 
-    double days = tickConverter.ticksToDays(incubationShift);
+    double days = TickConverter::ticksToDays(incubationShift);
     double p = getGammaPDF(days - INFECTION_MIN, INFECTION_ALPHA, INFECTION_BETA);
 
     return r<p;
 }
 
+int seed;
+std::default_random_engine generator(seed);
+void Probabilities::setSeed(int newSeed){
+    generator.seed(newSeed);
+}
+
 double Probabilities::getRandomTimeToDischarge(){
-    return getRandomGamma(DISCHARGE_ALPHA, DISCHARGE_BETA);
+    std::gamma_distribution<double> dist_gamma(DISCHARGE_ALPHA, DISCHARGE_BETA);
+    return dist_gamma(generator);
 }
 
 /**
@@ -204,7 +211,6 @@ double Probabilities::getRandomWakeUpTime(Shift workShift){
             return repast::Random::instance()->nextDouble() + displacement + i;
         }
     }
-
     return -1;
 }
 
@@ -246,7 +252,6 @@ double Probabilities::getRandomReturnToHomeTime(Shift workShift){
             return repast::Random::instance()->nextDouble() + displacement + i;
         }
     }
-
     return -1;
 }
 
@@ -254,12 +259,9 @@ double Probabilities::getRandomReturnToHomeTime(Shift workShift){
  * Get random work shift. Reference: <pending>
 */
 Shift Probabilities::getRandomWorkShift(double r){
-
     if (r < Probabilities::DAY_SHIFT_PROBABILITIES){
         return DAY;
     }else{
         return NIGHT;
     }
 }
-
-Probabilities::Probabilities(void){}

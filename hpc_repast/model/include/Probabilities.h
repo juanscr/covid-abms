@@ -1,5 +1,4 @@
 /*Probabilities.h */
-
 #ifndef PROBABILITIES_H
 #define PROBABILITIES_H
 
@@ -12,10 +11,9 @@
 #include "PatientType.h"
 #include "DiseaseStage.h"
 #include "TickConverter.h"
+#include <random>
 
-class Probabilities{
-    TickConverter tickConverter;
-
+namespace Probabilities{
     /**
 	 * Age ranges (unit: age). Reference: <pending>
 	 */
@@ -52,11 +50,6 @@ class Probabilities{
     const double INFECTION_BETA = 1.3;
 
     /**
-	 * Infection minimum parameter. Reference: <pending>
-	 */
-    const double INFECTION_MIN = -2.4;
-
-    /**
 	 * Discharge alpha parameter. Reference: <pending>
 	 */
 	const double DISCHARGE_ALPHA = 1.99;
@@ -78,10 +71,12 @@ class Probabilities{
 	const double STD_INCUBATION_PERIOD = 2.41;
 
     /**
-	 * Age ranges (unit: age). Reference: <pending>
+	 * Infection minimum parameter. Reference: <pending>
 	 */
-    private:
-    public:
+    const double INFECTION_MIN = -2.4;
+
+    void setSeed(int newSeed);
+
     /**
     Methods
     */
@@ -135,8 +130,6 @@ class Probabilities{
         double getRandomGamma(double alpha, double theta);
         double getGammaPDF(double x, double alpha, double theta);
         double getRandomTimeToDischarge();
-        Probabilities();
-
 
 };
 

@@ -21,7 +21,7 @@ void RepastHPCAgent::setProcessHome(int newProcessHome){
 }
 
 void RepastHPCAgent::initAgent(double xhome, double yhome, double xwork, double ywork){
-    age = probabilities.getRandomAge(repast::Random::instance()->nextDouble(), repast::Random::instance()->nextDouble());
+    age = Probabilities::getRandomAge(repast::Random::instance()->nextDouble(), repast::Random::instance()->nextDouble());
     diseaseStage = SUSCEPTIBLE;
 
     // Set spatial and temporal attributes to agents
@@ -30,10 +30,10 @@ void RepastHPCAgent::initAgent(double xhome, double yhome, double xwork, double 
 	setHomePlace(std::vector<double> {xhome, yhome});
 	setWorkPlace(std::vector<double> {xwork, ywork});
 	setAtHome(true);
-	setWorkShift(probabilities.getRandomWorkShift(repast::Random::instance()->nextDouble()));
+	setWorkShift(Probabilities::getRandomWorkShift(repast::Random::instance()->nextDouble()));
 
-    setWakeUpTime(probabilities.getRandomWakeUpTime(getWorkShit()));
-    setReturnToHomeTime(probabilities.getRandomReturnToHomeTime(getWorkShit()));
+    setWakeUpTime(Probabilities::getRandomWakeUpTime(getWorkShit()));
+    setReturnToHomeTime(Probabilities::getRandomReturnToHomeTime(getWorkShit()));
 
 }
 
@@ -98,7 +98,7 @@ void RepastHPCAgent::setTicksToDiseaseEnd(double newTicksToDiseaseEnd){
 }
 
 double RepastHPCAgent::getDistance(double x, double y){
-    return geography.getDistance(xcoord, ycoord, x, y);
+    return Geography::getDistance(xcoord, ycoord, x, y);
 }
 
 void RepastHPCAgent::initDisease(){
@@ -160,7 +160,7 @@ void RepastHPCAgent::move(repast::SharedContinuousSpace<RepastHPCAgent, repast::
     double newX, newY;
 
     if (diseaseStage != DEAD){
-        geography.genDistance(minX, maxX, minY, maxY, agentLoc[0], agentLoc[1], MAX_MOVEMENT_IN_DESTINATION, &newX, &newY);
+        Geography::genDistance(minX, maxX, minY, maxY, agentLoc[0], agentLoc[1], MAX_MOVEMENT_IN_DESTINATION, &newX, &newY);
 
         // Update coordinates
         xcoord = newX;
@@ -189,12 +189,12 @@ void RepastHPCAgent::setExposed(){
     diseaseStage = EXPOSED;
 
     // Get incubation period
-    double incubationPeriod = probabilities.getRandomIncubationPeriod();
-    incubationShift = tickConverter.daysToTicks(incubationPeriod);
+    double incubationPeriod = Probabilities::getRandomIncubationPeriod();
+    incubationShift = TickConverter::daysToTicks(incubationPeriod);
 
-    // Get infectivit period
-    double infectiousPeriod = max(incubationPeriod + (-2.4), 1.0);
-    ticksToInfected = currentTick + tickConverter.daysToTicks(infectiousPeriod);
+    // Get infectivity period
+    double infectiousPeriod = max(incubationPeriod + (Probabilities::INFECTION_MIN), 1.0);
+    ticksToInfected = currentTick + TickConverter::daysToTicks(infectiousPeriod);
 }
 
 void RepastHPCAgent::setInfected(){
@@ -208,17 +208,17 @@ void RepastHPCAgent::setInfected(){
 
     diseaseStage = INFECTED;
 
-    PatientType patient = probabilities.getRandomPatientType(r1, r2);
+    PatientType patient = Probabilities::getRandomPatientType(r1, r2);
 
-    if (probabilities.isGoingToDie(r3, patient)){
+    if (Probabilities::isGoingToDie(r3, patient)){
         diseaseStageEnd = true;
     }else
     {
         diseaseStageEnd = false;
     }
 
-    double daysToEvent = repast::Random::instance()->nextDouble()*(21-7) + 7;
-    ticksToDiseaseEnd = currentTick + tickConverter.daysToTicks(daysToEvent);
+    double daysToEvent = Probabilities::getRandomTimeToDischarge() - Probabilities::INFECTION_MIN;
+    ticksToDiseaseEnd = currentTick + TickConverter::daysToTicks(daysToEvent);
 
 }
 
@@ -229,7 +229,6 @@ void RepastHPCAgent::diseaseActions(double currentTick){
         if ( (currentTick-1) <= ticksToInfected && ticksToInfected <= currentTick ){
             setInfected();
         }
-
 
     } else if (diseaseStage == INFECTED){
         if ( (currentTick-1) <= ticksToDiseaseEnd && ticksToDiseaseEnd <= currentTick ){

@@ -15,8 +15,6 @@
 
 /* Agents */
 class RepastHPCAgent{
-    // Geography
-    Geography geography;
 
 private:
     // Personal atributes
@@ -26,11 +24,7 @@ private:
     int processHome;
 	int age;
 
-    // Probabilities
-    Probabilities probabilities;
-
     // Tick convertion
-    TickConverter tickConverter;
     double currentTick;
 
     // family

@@ -97,6 +97,7 @@ bool Probabilities::isGoingToDie(double r, PatientType patientType){
 double Probabilities::getRandomGamma(double alpha, double theta) {
     double x = 0;
     double u2;
+    double w;
     if (alpha >= 0.5) {
         double a = alpha - 0.5;
         double b = alpha / a;
@@ -111,6 +112,7 @@ double Probabilities::getRandomGamma(double alpha, double theta) {
             double u2 = u1 + h1 * u - h2;
             if (u2 < 0 or u2 > 1)
                 continue;
+            double w = b * (u1 / u2);
             x = a * w;
         } while (c * u2 > d - w - 1 / w && c * std::log(u2) > std::log(w) - w + 1);
     }
@@ -137,6 +139,12 @@ double Probabilities::getRandomGamma(double alpha, double theta) {
     return theta * x;
 }
 
+double Probabilities::getGammaPDF(double x, double alpha, double theta){
+    double pdf = std::pow(x, alpha-1)*std::exp(-x/theta);
+
+    return pdf/(std::tgamma(alpha)*std::pow(theta, alpha));
+}
+
 
 /**
  * Is the citizen getting exposed? Reference: <pending>
@@ -147,7 +155,21 @@ bool Probabilities::isGettingExposed(double r, double incubationShift){
         return false;
     }
 
-    return true;
+    double days = TickConverter::ticksToDays(incubationShift);
+    double p = getGammaPDF(days - INFECTION_MIN, INFECTION_ALPHA, INFECTION_BETA);
+
+    return r<p;
+}
+
+int seed;
+std::default_random_engine generator(seed);
+void Probabilities::setSeed(int newSeed){
+    generator.seed(newSeed);
+}
+
+double Probabilities::getRandomTimeToDischarge(){
+    std::gamma_distribution<double> dist_gamma(DISCHARGE_ALPHA, DISCHARGE_BETA);
+    return dist_gamma(generator);
 }
 
 /**
@@ -189,7 +211,6 @@ double Probabilities::getRandomWakeUpTime(Shift workShift){
             return repast::Random::instance()->nextDouble() + displacement + i;
         }
     }
-
     return -1;
 }
 
@@ -231,7 +252,6 @@ double Probabilities::getRandomReturnToHomeTime(Shift workShift){
             return repast::Random::instance()->nextDouble() + displacement + i;
         }
     }
-
     return -1;
 }
 
@@ -239,12 +259,9 @@ double Probabilities::getRandomReturnToHomeTime(Shift workShift){
  * Get random work shift. Reference: <pending>
 */
 Shift Probabilities::getRandomWorkShift(double r){
-
     if (r < Probabilities::DAY_SHIFT_PROBABILITIES){
         return DAY;
     }else{
         return NIGHT;
     }
 }
-
-Probabilities::Probabilities(void){}

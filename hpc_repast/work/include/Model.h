@@ -69,8 +69,6 @@ class RepastHPCModel{
 	double distance;
 	double rand_exposed;
 	int seed;
-	Probabilities probabilities;
-	TickConverter tc;
 
 	repast::Properties* props;
 	repast::SharedContext<RepastHPCAgent> context;

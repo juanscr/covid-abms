@@ -49,5 +49,3 @@ void Geography::genDistance(double minX, double maxX, double minY, double maxY, 
     }
 
 }
-
-Geography::Geography(void){}

@@ -1,11 +1,7 @@
 #ifndef TICK_CONVERTER_H
 #define TICK_CONVERTER_H
 
-class TickConverter{
-    private:
-
-    public:
-
+namespace TickConverter{
     // Values
 
     /**

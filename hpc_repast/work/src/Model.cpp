@@ -141,6 +141,8 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 
 	// Distributions
 	initializeRandom(*props, comm);
+	seed = repast::strToInt(props->getProperty("random.seed"));
+	Probabilities::setSeed(seed);
 
 	if(repast::RepastProcess::instance()->rank() == 0) props->writeToSVFile("./output/record.csv");
 	provider = new RepastHPCAgentPackageProvider(&context);
@@ -180,6 +182,7 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 
 	// Use the builder to create the data set
 	agentValues = builder.createDataSet();
+
 }
 
 RepastHPCModel::~RepastHPCModel(){
@@ -289,11 +292,12 @@ int RepastHPCModel::getProcess(double x, double y){
 
 
 void RepastHPCModel::step(){
+
 	int crank = repast::RepastProcess::instance()->rank();
 	int ctick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
 	if (crank == 0){
-		std::cout << "tick " << ctick  << std::endl;
+		std::cout << "tick " << ctick << std::endl;
 	}
 
 	// Get all agents of the current rank
@@ -314,7 +318,7 @@ void RepastHPCModel::step(){
 
 	while(it != agents.end() && agents.size()>0){
 		// Ask agents to wake up
-		if ( (*it)->getDiseaseStage()!=DEAD && (ctick-1)%tc.TICKS_PER_DAY <= (*it)->getWakeUpTime()  && (*it)->getWakeUpTime()  <=  ctick%tc.TICKS_PER_DAY){
+		if ( (*it)->getDiseaseStage()!=DEAD && (ctick-1)%TickConverter::TICKS_PER_DAY <= (*it)->getWakeUpTime()  && (*it)->getWakeUpTime()  <=  ctick%TickConverter::TICKS_PER_DAY){
 			repast::RepastProcess::instance()->moveAgent((*it)->getId(), (*it)->getProcessWork());
 			(*it)->wakeUp(continuousSpace);
 			}
@@ -329,7 +333,7 @@ void RepastHPCModel::step(){
 	it = agents.begin();
 	while(it != agents.end() && agents.size()>0){
 		// Ask agents to return home
-		if ((*it)->getDiseaseStage()!=DEAD && (ctick-1)%tc.TICKS_PER_DAY <= (*it)->getWakeUpTime()  && (*it)->getWakeUpTime()  <=  ctick%tc.TICKS_PER_DAY){
+		if ((*it)->getDiseaseStage()!=DEAD && (ctick-1)%TickConverter::TICKS_PER_DAY <= (*it)->getWakeUpTime()  && (*it)->getWakeUpTime()  <=  ctick%TickConverter::TICKS_PER_DAY){
 			repast::RepastProcess::instance()->moveAgent((*it)->getId(), (*it)->getProcessHome());
 			(*it)->returnHome(continuousSpace);
 			}
@@ -378,7 +382,7 @@ void RepastHPCModel::step(){
 				// Rand for getting exposed
 				rand_exposed = repast::Random::instance()->nextDouble();
 
-					if (distance <= infectionRadius && probabilities.isGettingExposed(rand_exposed, (*it)->getIncubatioShift())){
+					if (distance <= infectionRadius && Probabilities::isGettingExposed(rand_exposed, (*it)->getIncubatioShift())){
 						// Increase infections
 						(*it)->setInfections( (*it)->getInfections() + 1);
 
