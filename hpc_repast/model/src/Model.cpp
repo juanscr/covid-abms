@@ -141,10 +141,13 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 
 	// Distributions
 	initializeRandom(*props, comm);
-	seed = repast::strToInt(props->getProperty("random.seed"));
-	Probabilities::setSeed(seed);
 
-	if(repast::RepastProcess::instance()->rank() == 0) props->writeToSVFile("./output/record.csv");
+	if(repast::RepastProcess::instance()->rank() == 0){
+		props->writeToSVFile("./output/record.csv");
+	};
+
+	seed = repast::Random::instance()->createUniIntGenerator(1, procsX*procsY).next();
+
 	provider = new RepastHPCAgentPackageProvider(&context);
 	receiver = new RepastHPCAgentPackageReceiver(&context);
 
@@ -249,9 +252,9 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 
 		// Initialize random disease stage
 		double randomDisease = repast::Random::instance()->nextDouble();
-		if(randomDisease <= 0.001){
+		if(randomDisease <= 0.0001){
 			agent->setDiseaseStage(INFECTED);
-		}else if (randomDisease <= 0.95){
+		}else if (randomDisease <= 0.9999){
 			agent->setDiseaseStage(SUSCEPTIBLE);
 		}else{
 			agent->setDiseaseStage(EXPOSED);
@@ -290,14 +293,12 @@ int RepastHPCModel::getProcess(double x, double y){
 	return procsY*pX + pY;
 }
 
-
 void RepastHPCModel::step(){
-
 	int crank = repast::RepastProcess::instance()->rank();
 	int ctick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
 	if (crank == 0){
-		std::cout << "tick " << ctick << std::endl;
+		//std::cout << " tick: " << ctick << std::endl;
 	}
 
 	// Get all agents of the current rank
@@ -419,6 +420,7 @@ void RepastHPCModel::step(){
 		repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
 		repast::RepastProcess::instance()->synchronizeProjectionInfo<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
 		repast::RepastProcess::instance()->synchronizeAgentStates<RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(*provider, *receiver);
+
 }
 
 void RepastHPCModel::initSchedule(repast::ScheduleRunner& runner){

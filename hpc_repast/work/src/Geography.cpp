@@ -1,5 +1,4 @@
 /* Geography.cpp */
-
 #include "Geography.h"
 
 double Geography::getDistance(double x1, double y1, double x2, double y2){

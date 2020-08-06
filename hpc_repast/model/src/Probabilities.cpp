@@ -88,7 +88,6 @@ bool Probabilities::isGoingToDie(double r, PatientType patientType){
         return false;
         break;
     }
-
 }
 
 /**
@@ -135,13 +134,11 @@ double Probabilities::getRandomGamma(double alpha, double theta) {
             }
         } while (condition);
     }
-
     return theta * x;
 }
 
 double Probabilities::getGammaPDF(double x, double alpha, double theta){
     double pdf = std::pow(x, alpha-1)*std::exp(-x/theta);
-
     return pdf/(std::tgamma(alpha)*std::pow(theta, alpha));
 }
 
@@ -161,10 +158,11 @@ bool Probabilities::isGettingExposed(double r, double incubationShift){
     return r<p;
 }
 
-int seed;
-std::default_random_engine generator(seed);
-void Probabilities::setSeed(int newSeed){
-    generator.seed(newSeed);
+// Set seed
+namespace Probabilities{
+    std::random_device r;
+    unsigned int seed =  r();
+    std::default_random_engine generator(seed);
 }
 
 double Probabilities::getRandomTimeToDischarge(){

@@ -161,7 +161,6 @@ public:
 
     // Actions according to disease stage of agent
     void diseaseActions(double currentTick);
-
 };
 
 /* Serializable Agent Package */

@@ -217,7 +217,6 @@ void RepastHPCAgent::setInfected(){
         diseaseStageEnd = false;
     }
 
-    //double daysToEvent = repast::Random::instance()->nextDouble()*(21-7) + 7;
     double daysToEvent = Probabilities::getRandomTimeToDischarge() - Probabilities::INFECTION_MIN;
     ticksToDiseaseEnd = currentTick + TickConverter::daysToTicks(daysToEvent);
 
@@ -230,7 +229,6 @@ void RepastHPCAgent::diseaseActions(double currentTick){
         if ( (currentTick-1) <= ticksToInfected && ticksToInfected <= currentTick ){
             setInfected();
         }
-
 
     } else if (diseaseStage == INFECTED){
         if ( (currentTick-1) <= ticksToDiseaseEnd && ticksToDiseaseEnd <= currentTick ){

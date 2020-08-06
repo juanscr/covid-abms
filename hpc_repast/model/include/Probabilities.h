@@ -75,7 +75,9 @@ namespace Probabilities{
 	 */
     const double INFECTION_MIN = -2.4;
 
-    void setSeed(int newSeed);
+    // Initialize generators
+    extern std::default_random_engine generator;
+    extern unsigned int seed;
 
     /**
     Methods

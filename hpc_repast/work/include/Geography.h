@@ -11,7 +11,6 @@
 /* Geography */
 namespace Geography{
 
-
     /**
      * PI
     */

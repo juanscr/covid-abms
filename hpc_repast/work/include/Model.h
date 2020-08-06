@@ -16,7 +16,6 @@
 #include "Agent.h"
 #include "Probabilities.h"
 
-
 /* Agent Package Provider */
 class RepastHPCAgentPackageProvider {
 	private:
@@ -34,7 +33,6 @@ class RepastHPCAgentPackageReceiver {
 	repast::SharedContext<RepastHPCAgent>* agents;
 
 public:
-
     RepastHPCAgentPackageReceiver(repast::SharedContext<RepastHPCAgent>* agentPtr);
     RepastHPCAgent * createAgent(RepastHPCAgentPackage package);
     void updateAgent(RepastHPCAgentPackage package);
@@ -90,5 +88,4 @@ public:
 	void initSchedule(repast::ScheduleRunner& runner);
 	void recordResults();
 };
-
 #endif
