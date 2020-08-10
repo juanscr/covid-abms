@@ -1,1 +1,0 @@
-mpirun -n 10 ./bin/code_01.exe ./props/config.props ./props/model.props stop.at=300 count.of.agents=30000 procs.x=5 procs.y=2 random.seed=1
