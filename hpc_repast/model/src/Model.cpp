@@ -262,9 +262,9 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 
 		// Initialize random disease stage
 		double randomDisease = repast::Random::instance()->nextDouble();
-		if(randomDisease <= 0.2){
+		if(randomDisease <= 0.001){
 			agent->setDiseaseStage(INFECTED);
-		}else if (randomDisease <= 0.9){
+		}else if (randomDisease <= 0.999){
 			agent->setDiseaseStage(SUSCEPTIBLE);
 		}else{
 			agent->setDiseaseStage(EXPOSED);
