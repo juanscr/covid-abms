@@ -186,6 +186,16 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	// Use the builder to create the data set
 	agentValues = builder.createDataSet();
 
+	// Define csv file to export agent states
+	csvFile = "./output/agent_states.csv";
+
+	/* Uncomment to save agent states in a CSV File
+	if(repast::RepastProcess::instance()->rank() == 0){
+		if(!fileExists(csvFile))
+        writeCsvFile(csvFile, "Tick", "ID", "X", "Y", "DiseaseStage");
+	};
+	*/
+
 }
 
 RepastHPCModel::~RepastHPCModel(){
@@ -252,9 +262,9 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 
 		// Initialize random disease stage
 		double randomDisease = repast::Random::instance()->nextDouble();
-		if(randomDisease <= 0.0001){
+		if(randomDisease <= 0.2){
 			agent->setDiseaseStage(INFECTED);
-		}else if (randomDisease <= 0.9999){
+		}else if (randomDisease <= 0.9){
 			agent->setDiseaseStage(SUSCEPTIBLE);
 		}else{
 			agent->setDiseaseStage(EXPOSED);
@@ -293,12 +303,34 @@ int RepastHPCModel::getProcess(double x, double y){
 	return procsY*pX + pY;
 }
 
+bool RepastHPCModel::fileExists(std::string& fileName) {
+    return static_cast<bool>(std::ifstream(fileName));
+}
+
+template <typename filename, typename T1, typename T2, typename T3, typename T4, typename T5>
+bool RepastHPCModel::writeCsvFile(filename &fileName, T1 column1, T2 column2, T3 column3, T4 column4, T5 column5) {
+    std::lock_guard<std::mutex> csvLock(logMutex);
+    std::fstream file;
+    file.open (fileName, std::ios::out | std::ios::app);
+    if (file) {
+        file << "\"" << column1 << "\",";
+        file << "\"" << column2 << "\",";
+        file << "\"" << column3 << "\",";
+		file << "\"" << column4 << "\",";
+		file << "\"" << column5 << "\"";
+        file <<  std::endl;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void RepastHPCModel::step(){
 	int crank = repast::RepastProcess::instance()->rank();
 	int ctick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
 	if (crank == 0){
-		//std::cout << " tick: " << ctick << std::endl;
+		std::cout << " tick: " << ctick << std::endl;
 	}
 
 	// Get all agents of the current rank
@@ -311,37 +343,19 @@ void RepastHPCModel::step(){
 	// Select all agents
 	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
 
-	// Iterator for agents is rank
+	/* Uncomment to write init agen states
+	// Save init states
+	if(ctick==1){
+		for(auto agent : agents){
+			if (!writeCsvFile( csvFile, 0, agent->getId(), agent->getXCoord(), agent->getYCoord(), agent->getDiseaseStage() )) {
+				std::cerr << "Failed to write to file: " << csvFile << "\n";
+			}
+		}
+	}
+	*/
+
+	// Iterator for agents
 	std::vector<RepastHPCAgent*>::iterator it;
-
-	// Start iterator
-	it = agents.begin();
-
-	while(it != agents.end() && agents.size()>0){
-		// Ask agents to wake up
-		if ( (*it)->getDiseaseStage()!=DEAD && (ctick-1)%TickConverter::TICKS_PER_DAY <= (*it)->getWakeUpTime()  && (*it)->getWakeUpTime()  <=  ctick%TickConverter::TICKS_PER_DAY){
-			repast::RepastProcess::instance()->moveAgent((*it)->getId(), (*it)->getProcessWork());
-			(*it)->wakeUp(continuousSpace);
-			}
-		it++;
-	}
-
-	// Synchronize agents that moved to other processes
-	repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
-
-	agents.clear();
-	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
-	it = agents.begin();
-	while(it != agents.end() && agents.size()>0){
-		// Ask agents to return home
-		if ((*it)->getDiseaseStage()!=DEAD && (ctick-1)%TickConverter::TICKS_PER_DAY <= (*it)->getWakeUpTime()  && (*it)->getWakeUpTime()  <=  ctick%TickConverter::TICKS_PER_DAY){
-			repast::RepastProcess::instance()->moveAgent((*it)->getId(), (*it)->getProcessHome());
-			(*it)->returnHome(continuousSpace);
-			}
-		it++;
-	}
-	// Synchronize agents that moved to other processes
-	repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
 
 	// Vector of agents to remove
 	std::vector<RepastHPCAgent*> agents_del;
@@ -349,8 +363,6 @@ void RepastHPCModel::step(){
 	std::vector<RepastHPCAgent*>::iterator it_del;
 	std::vector<RepastHPCAgent*>::iterator toErase;
 
-	agents.clear();
-	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
 	it = agents.begin();
 
 	while (it != agents.end()){
@@ -416,11 +428,43 @@ void RepastHPCModel::step(){
 
 			it++;
 		}
-		continuousSpace->balance();
-		repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
-		repast::RepastProcess::instance()->synchronizeProjectionInfo<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
-		repast::RepastProcess::instance()->synchronizeAgentStates<RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(*provider, *receiver);
 
+	// Start iterator to wake up agents
+	it = agents.begin();
+
+	while(it != agents.end() && agents.size()>0){
+		// Ask agents to wake up
+		if ( (*it)->getDiseaseStage()!=DEAD && (ctick)%TickConverter::TICKS_PER_DAY <= (*it)->getWakeUpTime()  && (*it)->getWakeUpTime()  <=  (ctick+1)%TickConverter::TICKS_PER_DAY){
+			if ( (*it)->getProcessHome() != (*it)->getProcessWork() ){
+				repast::RepastProcess::instance()->moveAgent((*it)->getId(), (*it)->getProcessWork());
+			}
+			(*it)->wakeUp(continuousSpace);
+			}
+		else if ((*it)->getDiseaseStage()!=DEAD && (ctick)%TickConverter::TICKS_PER_DAY <= (*it)->getReturnToHomeTime()  && (*it)->getReturnToHomeTime()  <=  (ctick+1)%TickConverter::TICKS_PER_DAY){
+			repast::RepastProcess::instance()->moveAgent((*it)->getId(), (*it)->getProcessHome());
+			(*it)->returnHome(continuousSpace);
+		}
+
+		it++;
+	}
+
+	repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
+	/* Uncomment to save agent states in a CSV File
+	agents.clear();
+	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
+
+	// Write states of agents
+	for(auto agent : agents){
+		if (!writeCsvFile( csvFile, ctick, agent->getId(), agent->getXCoord(), agent->getYCoord(), agent->getDiseaseStage() )) {
+		std::cerr << "Failed to write to file: " << csvFile << "\n";
+		}
+	}
+	*/
+
+	continuousSpace->balance();
+	repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
+	repast::RepastProcess::instance()->synchronizeProjectionInfo<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);
+	repast::RepastProcess::instance()->synchronizeAgentStates<RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(*provider, *receiver);
 }
 
 void RepastHPCModel::initSchedule(repast::ScheduleRunner& runner){

@@ -13,6 +13,8 @@
 #include "repast_hpc/SharedContinuousSpace.h"
 #include "repast_hpc/GridComponents.h"
 
+#include <mutex>
+
 #include "Agent.h"
 #include "Probabilities.h"
 
@@ -68,6 +70,10 @@ class RepastHPCModel{
 	double rand_exposed;
 	int seed;
 
+	// CSV File with agent states
+	std::mutex logMutex;
+	std::string csvFile;
+
 	repast::Properties* props;
 	repast::SharedContext<RepastHPCAgent> context;
 	RepastHPCAgentPackageProvider* provider;
@@ -87,5 +93,8 @@ public:
 	void step();
 	void initSchedule(repast::ScheduleRunner& runner);
 	void recordResults();
+	bool fileExists(std::string& fileName);
+	template <typename filename, typename T1, typename T2, typename T3, typename T4, typename T5>
+	bool writeCsvFile(filename &fileName, T1 column1, T2 column2, T3 column3, T4 column4, T5 column5);
 };
 #endif

@@ -128,7 +128,6 @@ void RepastHPCAgent::wakeUp(repast::SharedContinuousSpace<RepastHPCAgent, repast
     agentLoc.push_back(xcoord);
     agentLoc.push_back(ycoord);
 
-
     if (!space->bounds().contains(agentLoc)){
         std::cout << id_ << " not in bounds " << std::endl;
     }
@@ -198,7 +197,6 @@ void RepastHPCAgent::setExposed(){
 }
 
 void RepastHPCAgent::setInfected(){
-
     // Get day of final disease stage
     currentTick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
@@ -223,13 +221,10 @@ void RepastHPCAgent::setInfected(){
 }
 
 void RepastHPCAgent::diseaseActions(double currentTick){
-
     if (diseaseStage == EXPOSED){
-
         if ( (currentTick-1) <= ticksToInfected && ticksToInfected <= currentTick ){
             setInfected();
         }
-
     } else if (diseaseStage == INFECTED){
         if ( (currentTick-1) <= ticksToDiseaseEnd && ticksToDiseaseEnd <= currentTick ){
             if (diseaseStageEnd){
@@ -237,7 +232,6 @@ void RepastHPCAgent::diseaseActions(double currentTick){
             }else{
                 setImmune();
             }
-
         }
     }
 }
