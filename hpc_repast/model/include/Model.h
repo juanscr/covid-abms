@@ -17,6 +17,7 @@
 
 #include "Agent.h"
 #include "Probabilities.h"
+#include "PolicyEnforcer.h"
 
 /* Agent Package Provider */
 class RepastHPCAgentPackageProvider {
@@ -73,6 +74,9 @@ class RepastHPCModel{
 	// CSV File with agent states
 	std::mutex logMutex;
 	std::string csvFile;
+
+	// Policy Enforcer
+	PolicyEnforcer policyEnforcer;
 
 	repast::Properties* props;
 	repast::SharedContext<RepastHPCAgent> context;

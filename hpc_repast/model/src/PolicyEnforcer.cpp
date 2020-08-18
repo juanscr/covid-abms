@@ -5,7 +5,7 @@ PolicyEnforcer::PolicyEnforcer(void){
 void PolicyEnforcer::schedulePolicy(Policy policy, double startDay, double endDay, repast::ScheduleRunner& runner){
     // Add policy
     double startTick = TickConverter::daysToTicks(startDay);
-    runner.scheduleEvent(startTick, repast::Schedule::FunctorPtr(new repast::MethodFunctor<PolicyEnforcer>(this,&PolicyEnforcer::addPolicy)));
+    runner.scheduleEvent(startTick-0.01, repast::Schedule::FunctorPtr(new repast::MethodFunctor<PolicyEnforcer>(this,&PolicyEnforcer::addPolicy)));
     addedPolicies.push_back(policy);
     // Remove policy
     double endTick = TickConverter::daysToTicks(endDay);
