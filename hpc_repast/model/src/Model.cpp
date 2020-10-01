@@ -121,6 +121,9 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	props = new repast::Properties(propsFile, argc, argv, comm);
 	stopAt = repast::strToInt(props->getProperty("stop.at"));
 
+	// Current rank
+	int crank = repast::RepastProcess::instance()->rank();
+
     // Number of agents
 	countOfAgents = repast::strToInt(props->getProperty("count.of.agents"));
 
@@ -131,14 +134,18 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	procsX = repast::strToInt(props->getProperty("procs.x"));
 	procsY = repast::strToInt(props->getProperty("procs.y"));
 
-	// Size of space
-	originX = repast::strToDouble(props->getProperty("origin.x"));
-	originY = repast::strToDouble(props->getProperty("origin.y"));
-	extentX = repast::strToDouble(props->getProperty("extent.x"));
-	extentY = repast::strToDouble(props->getProperty("extent.y"));
+	// Read the sit zone path
+	szp = props->getProperty("sit.zone.path");
 
-	maxX = originX + extentX*0.99999;
-	maxY = originY + extentY*0.99999;
+	// Read borders and polygons
+	// Gen first polygon
+	poly.clear();
+
+	Geography::getExternalBorders(crank, true, szp, procsX, procsY, &poly, &ext_borders, &originX, &extentX, &originY, &extentY, zones);
+	npoints = boost::geometry::num_points(poly);
+	points = poly.outer();
+	maxX = originX + extentX;
+	maxY = originY + extentY;
 
 	// Distributions
 	initializeRandom(*props, comm);
@@ -191,10 +198,10 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	csvFile = "./output/agent_states.csv";
 
 	//Uncomment to save agent states in a CSV File
-	if(repast::RepastProcess::instance()->rank() == 0){
-		if(!fileExists(csvFile))
-        writeCsvFile(csvFile, "Tick", "ID", "X", "Y", "DiseaseStage");
-	};
+	// if(repast::RepastProcess::instance()->rank() == 0){
+	// 	if(!fileExists(csvFile))
+    //     writeCsvFile(csvFile, "Tick", "ID", "X", "Y", "DiseaseStage");
+	// };
 }
 
 RepastHPCModel::~RepastHPCModel(){
@@ -227,26 +234,66 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 	double xwork = 0;
 	double ywork = 0;
 	int workProcess = -1;
+	int homeProcess = -1;
+
+	// Geography
+	point p;
+	std::vector<int> tpoints; // Points of triangle
+	std::vector<std::vector<double>> triangle;
+	int tid;
+	repast::IntUniformGenerator ui  = repast::Random::instance()->createUniIntGenerator(1, npoints);
+	double r1, r2;
 
 	for(int i = 0; i < countOfAgents; i++){
+		//std::cout << "rank " << crank << " agent " << i << std::endl;
 		agentWorkLoc.clear();
+		tpoints.clear();
+		triangle.clear();
 		//Find homeplace within bounds
 		do{
 			agentWorkLoc.clear();
+			tpoints.clear();
+			triangle.clear();
+			// Generate random point
+			while(tpoints.size() != 3){
+				tid = ui.next();
+				if ( std::find(tpoints.begin(), tpoints.end(), tid) == tpoints.end() ){
+					tpoints.push_back(tid);
+					triangle.push_back({boost::geometry::get<0>(points[tid]), boost::geometry::get<1>(points[tid])});
+				}
+			}
+			// Push to triangle
 			xhome = repast::Random::instance()->nextDouble()*(end_x - init_x) + init_x;
 			yhome = repast::Random::instance()->nextDouble()*(end_y - init_y) + init_y;
+			r1 = repast::Random::instance()->nextDouble();
+			r2 = repast::Random::instance()->nextDouble();
+			p.set<0>(xhome);
+			p.set<1>(yhome);
 			agentWorkLoc.push_back(xhome);
 			agentWorkLoc.push_back(yhome);
-		}while(!continuousSpace->bounds().contains(agentWorkLoc));
+		}while(!continuousSpace->bounds().contains(agentWorkLoc) || !boost::geometry::within(p, ext_borders.at(crank)) );
 
-		////Find workplace within bounds
 		do{
 			agentWorkLoc.clear();
-			xwork = repast::Random::instance()->nextDouble()*(maxX - originX) + originX;
-			ywork = repast::Random::instance()->nextDouble()*(maxY - originY) + originY;
+			tpoints.clear();
+			triangle.clear();
+			// Generate random point
+			while(tpoints.size() != 3){
+				tid = ui.next();
+				if ( std::find(tpoints.begin(), tpoints.end(), tid) == tpoints.end() ){
+					tpoints.push_back(tid);
+					triangle.push_back({boost::geometry::get<0>(points[tid]), boost::geometry::get<1>(points[tid])});
+				}
+			}
+			r1 = repast::Random::instance()->nextDouble();
+			r2 = repast::Random::instance()->nextDouble();
+			xwork = (1 - std::pow(r1, 0.5))*triangle.at(0).at(0) + ((1-r2)*std::pow(r1, 0.5))*triangle.at(1).at(0) + (r2*std::pow(r1,0.5))*triangle.at(2).at(0);
+			ywork = (1 - std::pow(r1, 0.5))*triangle.at(0).at(1) + ((1-r2)*std::pow(r1, 0.5))*triangle.at(1).at(1) + (r2*std::pow(r1,0.5))*triangle.at(2).at(1);
+			p.set<0>(xwork);
+			p.set<1>(ywork);
 			agentWorkLoc.push_back(xwork);
 			agentWorkLoc.push_back(ywork);
-		}while(!continuousSpace->bounds().contains(agentWorkLoc));
+		}while(!boost::geometry::within(p, poly));
 
         repast::Point<double> initialLocation(xhome, yhome);
 
@@ -256,12 +303,14 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 		RepastHPCAgent* agent = new RepastHPCAgent(id);
 
 		// Initialize agents
-		agent->setProcessHome(crank);
+		// agent->setProcessHome(crank);
+		homeProcess = getProcess(xhome, yhome);
+		agent->setProcessHome(homeProcess);
 		agent->initAgent(xhome, yhome, xwork, ywork);
 
 		// Initialize random disease stage
 		double randomDisease = repast::Random::instance()->nextDouble();
-		if(randomDisease <= 0.001){
+		if(randomDisease <= 0.1){
 			agent->setDiseaseStage(INFECTED);
 		}else if (randomDisease <= 0.99){
 			agent->setDiseaseStage(SUSCEPTIBLE);
@@ -277,6 +326,8 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 
 		// Add agent to context
 		context.addAgent(agent);
+		// Boost
+		repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessHome());
         continuousSpace->moveTo(id, initialLocation);
 	}
 
@@ -287,6 +338,7 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 	policyEnforcer.schedulePolicy(NONE, 17, 19.99, runner);
 	policyEnforcer.schedulePolicy(ID_BASED_CURFEW, 20, 26.99, runner);
 	policyEnforcer.schedulePolicy(FULL_QUARANTINE, 27, stopAt, runner);
+
 }
 
 int RepastHPCModel::getProcess(double x, double y){
@@ -352,13 +404,13 @@ void RepastHPCModel::step(){
 	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
 
 	// Uncomment to write init agent states
-	if(ctick==1){
-		for(auto agent : agents){
-			if (!writeCsvFile( csvFile, 0, agent->getId(), agent->getXCoord(), agent->getYCoord(), agent->getDiseaseStage() )) {
-				std::cerr << "Failed to write to file: " << csvFile << "\n";
-			}
-		}
-	}
+	// if(ctick==1){
+	// 	for(auto agent : agents){
+	// 		if (!writeCsvFile( csvFile, 0, agent->getId(), agent->getXCoord(), agent->getYCoord(), agent->getDiseaseStage() )) {
+	// 			std::cerr << "Failed to write to file: " << csvFile << "\n";
+	// 		}
+	// 	}
+	// }
 
 	// Iterator for agents
 	std::vector<RepastHPCAgent*>::iterator it;
@@ -389,7 +441,7 @@ void RepastHPCModel::step(){
 
 		// Ask agents to move if allowed
 		if ( policyEnforcer.isAllowedToGoOut((*it)->getId(), ctick) ){
-			(*it)->move(continuousSpace, originX, maxX, originY, maxY);
+			(*it)->move(ext_borders.at(crank), continuousSpace, originX, maxX, originY, maxY);
 		}
 
 		if ((*it)->getDiseaseStage() == INFECTED){
@@ -413,7 +465,6 @@ void RepastHPCModel::step(){
 						// Remove from vector of susceptibles
 						agents_del.push_back(*it1);
 					}
-
 					it1++;
 				}
 
@@ -462,11 +513,11 @@ void RepastHPCModel::step(){
 	context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, context.size(), agents);
 
 	// Write states of agents
-	for(auto agent : agents){
-		if (!writeCsvFile( csvFile, ctick, agent->getId(), agent->getXCoord(), agent->getYCoord(), agent->getDiseaseStage() )) {
-		std::cerr << "Failed to write to file: " << csvFile << "\n";
-		}
-	}
+	// for(auto agent : agents){
+	// 	if (!writeCsvFile( csvFile, ctick, agent->getId(), agent->getXCoord(), agent->getYCoord(), agent->getDiseaseStage() )) {
+	// 	std::cerr << "Failed to write to file: " << csvFile << "\n";
+	// 	}
+	// }
 
 	continuousSpace->balance();
 	repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, RepastHPCAgentPackage, RepastHPCAgentPackageProvider, RepastHPCAgentPackageReceiver>(context, *provider, *receiver, *receiver);

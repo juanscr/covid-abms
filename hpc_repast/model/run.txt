@@ -1,1 +1,4 @@
-mpirun -n 10 ./bin/code_01.exe ./props/config.props ./props/model.props stop.at=300 count.of.agents=10000 procs.x=5 procs.y=2 random.seed=1
+px=2
+py=1
+np=$(($px*$py))
+mpirun -n $np ./bin/code_01.exe ./props/config.props ./props/model.props stop.at=1 count.of.agents=100 procs.x=$px procs.y=$py random.seed=1

@@ -13,6 +13,10 @@
 #include "Geography.h"
 #include "Probabilities.h"
 
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
+
 /* Agents */
 class RepastHPCAgent{
 
@@ -24,10 +28,14 @@ private:
     int processHome;
 	int age;
 
-    // Tick convertion
+    // Tick converter
     double currentTick;
 
     // family
+
+    // Boost geography
+    typedef boost::geometry::model::d2::point_xy<double> point;
+    typedef boost::geometry::model::polygon<point> polygon;
 
     // Position
     double xcoord;
@@ -154,7 +162,7 @@ public:
     void returnHome(repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space);
 
     // Ask agent to move
-    void move(repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space, double minX, double maxX, double minY, double maxY);
+    void move(polygon p , repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space, double minX, double maxX, double minY, double maxY);
 
     // Ask if agent is active case
     bool isActiveCase();

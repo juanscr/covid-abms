@@ -7,7 +7,6 @@ RepastHPCAgent::RepastHPCAgent(repast::AgentId id): id_(id){}
 RepastHPCAgent::~RepastHPCAgent(){ }
 
 /* Setters */
-
 void RepastHPCAgent::set(int currentRank){
     id_.currentRank(currentRank);
 }
@@ -153,13 +152,14 @@ void RepastHPCAgent::returnHome(repast::SharedContinuousSpace<RepastHPCAgent, re
     space->moveTo(id_, agentLoc);
 }
 
-void RepastHPCAgent::move(repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space, double minX, double maxX, double minY, double maxY){
+void RepastHPCAgent::move(polygon p, repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space, double minX, double maxX, double minY, double maxY){
     std::vector<double> agentLoc;
     space->getLocation(id_, agentLoc);
     double newX, newY;
 
     if (diseaseStage != DEAD){
-        Geography::genDistance(minX, maxX, minY, maxY, agentLoc[0], agentLoc[1], MAX_MOVEMENT_IN_DESTINATION, &newX, &newY);
+        //Geography::genDistance(minX, maxX, minY, maxY, agentLoc[0], agentLoc[1], MAX_MOVEMENT_IN_DESTINATION, &newX, &newY);
+        Geography::genDistancePoly(p, agentLoc[0], agentLoc[1], MAX_MOVEMENT_IN_DESTINATION, &newX, &newY);
 
         // Update coordinates
         xcoord = newX;

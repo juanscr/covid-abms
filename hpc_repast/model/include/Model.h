@@ -18,6 +18,12 @@
 #include "Agent.h"
 #include "Probabilities.h"
 #include "PolicyEnforcer.h"
+#include "Zone.h"
+
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
+#include <fstream>
 
 /* Agent Package Provider */
 class RepastHPCAgentPackageProvider {
@@ -39,7 +45,6 @@ public:
     RepastHPCAgentPackageReceiver(repast::SharedContext<RepastHPCAgent>* agentPtr);
     RepastHPCAgent * createAgent(RepastHPCAgentPackage package);
     void updateAgent(RepastHPCAgentPackage package);
-
 };
 
 /* Data Collection */
@@ -60,6 +65,8 @@ class RepastHPCModel{
 	double bufferSize;
 	int procsX;
 	int procsY;
+	//Sit zopne path
+	std::string szp;
 	double originX;
 	double originY;
 	double extentX;
@@ -70,6 +77,16 @@ class RepastHPCModel{
 	double distance;
 	double rand_exposed;
 	int seed;
+
+	// Testing geography
+	typedef boost::geometry::model::d2::point_xy<double> point;
+	typedef boost::geometry::model::polygon<point> polygon;
+	polygon poly;
+	std::string fig;
+	int npoints;
+	std::vector<point> points;
+	std::vector<polygon> ext_borders;
+	std::vector<Zone*> zones;
 
 	// CSV File with agent states
 	std::mutex logMutex;
