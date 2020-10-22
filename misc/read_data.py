@@ -127,7 +127,7 @@ class DataAnalysis:
         color_norm = colors.Normalize(vmin=0, vmax=len(self.solutions))
         scalar_map = cm.ScalarMappable(norm=color_norm, cmap=color1)
         # Histogram
-        plt.hist(self.to_analyze, color=scalar_map.to_rgba(0), label="Data", normed=True)
+        plt.hist(self.to_analyze, color=scalar_map.to_rgba(0), label="Data", density=True)
         i = 1
         for solution in self.solutions:
             arg = solution[2][:-2]
