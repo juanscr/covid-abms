@@ -40,7 +40,8 @@ class Station:
         ax.set_xticklabels(xticks)
         if save:
             plt.savefig(name, bbox_inches='tight')
-        plt.show()
+        else:
+            plt.show()
 
     def get_data_time(self, get_time):
         data_per_time = {}
