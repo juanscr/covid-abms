@@ -40,6 +40,7 @@ class Station:
         ax.set_xticklabels(xticks)
         if save:
             plt.savefig(name, bbox_inches='tight')
+            plt.clf()
         else:
             plt.show()
 
@@ -60,7 +61,7 @@ class Station:
             if data.date.weekday() == 5:
                 data_sat.append(data.traffic[:-2])
             elif data.date.weekday() == 6:
-                data_sun.append(data.traffic[:-2])
+                data_sun.append(data.traffic[1:-3])
             elif not holidays_co.is_holiday_date(data.date):
                 data_nh.append(data.traffic[:-2])
 
