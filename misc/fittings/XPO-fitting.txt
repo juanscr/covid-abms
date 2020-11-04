@@ -1,0 +1,323 @@
+====================================
+Hour 4
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.79934
+		Parameters      [0.42032, 1.84878, 197.55814, 40.7091]
+2. logistic     DO NOT REJECT
+		P-value for test 0.55451
+		Parameters      [187.59847, 14.35679]
+3. johnsonsb    DO NOT REJECT
+		P-value for test 0.53735
+		Parameters      [-16.45805, 8.42526, -1577.65065, 2015.9985]
+4. beta         DO NOT REJECT
+		P-value for test 0.53662
+		Parameters      [3102.27719, 55.57129, -10786.22268, 11169.63336]
+5. lognorm      DO NOT REJECT
+		P-value for test 0.33672
+		Parameters      [0.00617, -4055.23251, 4242.00341]
+====================================
+Hour 5
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.78355
+		Parameters      [1.16874, 1.30234, 910.39888, 66.31088]
+2. johnsonsb    DO NOT REJECT
+		P-value for test 0.14582
+		Parameters      [-12.91344, 2.81915, -23608.96704, 24695.21405]
+3. logistic     DO NOT REJECT
+		P-value for test 0.05459
+		Parameters      [833.24805, 51.48202]
+4. beta         REJECT
+		P-value for test 0.01871
+		Parameters      [4185638.75748, 5.15792, -184244494.33483, 184245539.19452]
+5. laplace      REJECT
+		P-value for test 0.01205
+		Parameters      [845.0, 70.19101]
+====================================
+Hour 6
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.95334
+		Parameters      [0.62555, 1.18763, 1253.48905, 79.83994]
+2. logistic     DO NOT REJECT
+		P-value for test 0.23316
+		Parameters      [1202.15954, 56.8605]
+3. laplace      DO NOT REJECT
+		P-value for test 0.21286
+		Parameters      [1205.0, 78.1985]
+4. johnsonsb    DO NOT REJECT
+		P-value for test 0.1522
+		Parameters      [-15.04212, 3.63303, -23094.3518, 24685.72874]
+5. beta         DO NOT REJECT
+		P-value for test 0.06545
+		Parameters      [387222342.566, 8.90525, -14345700953.86126, 14345702473.65902]
+====================================
+Hour 7
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.93333
+		Parameters      [0.73734, 1.12317, 1324.73837, 73.16767]
+2. laplace      DO NOT REJECT
+		P-value for test 0.08567
+		Parameters      [1272.0, 83.89888]
+3. johnsonsb    DO NOT REJECT
+		P-value for test 0.06653
+		Parameters      [-12.7202, 2.71665, -30243.30793, 31802.73726]
+4. logistic     DO NOT REJECT
+		P-value for test 0.05096
+		Parameters      [1263.8241, 61.23904]
+5. loglaplace   REJECT
+		P-value for test 0.00976
+		Parameters      [13.87775, -1.58049, 1273.58049]
+====================================
+Hour 8
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.5899
+		Parameters      [0.38682, 1.32317, 961.22865, 73.30054]
+2. t            DO NOT REJECT
+		P-value for test 0.58859
+		Parameters      [3.15606, 937.54648, 52.04812]
+3. logistic     DO NOT REJECT
+		P-value for test 0.58228
+		Parameters      [936.78641, 40.70034]
+4. loglaplace   DO NOT REJECT
+		P-value for test 0.27772
+		Parameters      [15.92509, -1.28917, 940.2892]
+5. laplace      DO NOT REJECT
+		P-value for test 0.21509
+		Parameters      [939.0, 56.69288]
+====================================
+Hour 9
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.66843
+		Parameters      [0.74546, 1.38274, 1011.10598, 68.11274]
+2. johnsonsb    DO NOT REJECT
+		P-value for test 0.28258
+		Parameters      [-15.35556, 4.39922, -9555.92369, 10846.11801]
+3. logistic     DO NOT REJECT
+		P-value for test 0.15501
+		Parameters      [967.50145, 39.11806]
+4. laplace      REJECT
+		P-value for test 0.02758
+		Parameters      [977.0, 54.17978]
+5. t            REJECT
+		P-value for test 0.01687
+		Parameters      [225.57504, 962.00048, 76.38728]
+====================================
+Hour 10
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.8204
+		Parameters      [0.02527, 1.34622, 958.81377, 75.44075]
+2. logistic     DO NOT REJECT
+		P-value for test 0.62471
+		Parameters      [957.62705, 39.36016]
+3. loglaplace   DO NOT REJECT
+		P-value for test 0.54439
+		Parameters      [16.9732, 0.24837, 956.75163]
+4. laplace      DO NOT REJECT
+		P-value for test 0.48736
+		Parameters      [957.0, 54.75281]
+5. johnsonsb    DO NOT REJECT
+		P-value for test 0.08208
+		Parameters      [-17.04682, 5.42672, -8809.01378, 10193.37992]
+====================================
+Hour 11
+1. logistic     DO NOT REJECT
+		P-value for test 0.79613
+		Parameters      [1019.45847, 42.31561]
+2. johnsonsu    DO NOT REJECT
+		P-value for test 0.62245
+		Parameters      [0.4132, 1.58898, 1047.61292, 97.15143]
+3. laplace      DO NOT REJECT
+		P-value for test 0.1457
+		Parameters      [1018.0, 59.61049]
+4. johnsonsb    DO NOT REJECT
+		P-value for test 0.11452
+		Parameters      [-17.58634, 3.98624, -24792.50626, 26130.69438]
+5. beta         DO NOT REJECT
+		P-value for test 0.05323
+		Parameters      [1038915542.44873, 8.76712, -29066544106.82905, 29066545366.72858]
+====================================
+Hour 12
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.88092
+		Parameters      [0.28155, 1.28735, 1129.39371, 77.24428]
+2. logistic     DO NOT REJECT
+		P-value for test 0.47526
+		Parameters      [1109.29873, 44.22223]
+3. laplace      DO NOT REJECT
+		P-value for test 0.44679
+		Parameters      [1113.0, 61.30337]
+4. loglaplace   DO NOT REJECT
+		P-value for test 0.14049
+		Parameters      [16.99492, 0.28742, 1112.71258]
+5. johnsonsb    REJECT
+		P-value for test 0.01385
+		Parameters      [-30.52561, 9.9087, -19315.11146, 21364.13686]
+====================================
+Hour 13
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.85425
+		Parameters      [-0.59266, 1.47486, 997.96057, 89.80642]
+2. logistic     DO NOT REJECT
+		P-value for test 0.66839
+		Parameters      [1039.31862, 45.08008]
+3. laplace      DO NOT REJECT
+		P-value for test 0.4585
+		Parameters      [1036.0, 63.09363]
+4. loglaplace   DO NOT REJECT
+		P-value for test 0.408
+		Parameters      [16.9017, -0.10805, 1036.10805]
+5. johnsonsb    DO NOT REJECT
+		P-value for test 0.3014
+		Parameters      [18.13879, 3.75963, 722.18639, 39198.48908]
+====================================
+Hour 14
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.99243
+		Parameters      [0.03337, 1.45272, 1268.08408, 100.0824]
+2. logistic     DO NOT REJECT
+		P-value for test 0.97836
+		Parameters      [1265.48718, 46.85259]
+3. loglaplace   DO NOT REJECT
+		P-value for test 0.38298
+		Parameters      [19.36988, -0.57751, 1263.57754]
+4. laplace      DO NOT REJECT
+		P-value for test 0.34771
+		Parameters      [1263.0, 65.05618]
+5. t            DO NOT REJECT
+		P-value for test 0.22971
+		Parameters      [86095.37534, 1265.37413, 89.94737]
+====================================
+Hour 15
+1. t            DO NOT REJECT
+		P-value for test 0.98173
+		Parameters      [3.86411, 1576.28282, 92.44333]
+2. johnsonsu    DO NOT REJECT
+		P-value for test 0.93392
+		Parameters      [0.24433, 1.38921, 1601.57008, 134.30726]
+3. logistic     DO NOT REJECT
+		P-value for test 0.82941
+		Parameters      [1574.85361, 67.91729]
+4. loglaplace   DO NOT REJECT
+		P-value for test 0.53733
+		Parameters      [16.3701, -2.57013, 1574.57013]
+5. laplace      DO NOT REJECT
+		P-value for test 0.44307
+		Parameters      [1572.0, 93.91011]
+====================================
+Hour 16
+1. logistic     DO NOT REJECT
+		P-value for test 0.95272
+		Parameters      [2232.41896, 106.16476]
+2. johnsonsu    DO NOT REJECT
+		P-value for test 0.75389
+		Parameters      [0.24695, 1.56442, 2275.18071, 246.64162]
+3. loglaplace   DO NOT REJECT
+		P-value for test 0.35682
+		Parameters      [14.56558, -1.87524, 2224.87524]
+4. laplace      DO NOT REJECT
+		P-value for test 0.20898
+		Parameters      [2223.0, 148.43446]
+5. johnsonsb    DO NOT REJECT
+		P-value for test 0.20797
+		Parameters      [-18.88889, 6.30424, -24101.73811, 27658.07453]
+====================================
+Hour 17
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.54866
+		Parameters      [1.81218, 1.5257, 3665.15706, 190.10313]
+2. johnsonsb    DO NOT REJECT
+		P-value for test 0.44208
+		Parameters      [-7.28686, 2.04007, -15153.06902, 19048.24336]
+3. beta         DO NOT REJECT
+		P-value for test 0.08054
+		Parameters      [185467281.46057, 3.38432, -28856951786.0395, 28856955621.65308]
+4. logistic     REJECT
+		P-value for test 0.041
+		Parameters      [3352.86229, 148.20489]
+5. laplace      REJECT
+		P-value for test 0.01465
+		Parameters      [3367.0, 206.98127]
+====================================
+Hour 18
+1. logistic     DO NOT REJECT
+		P-value for test 0.52012
+		Parameters      [2952.16835, 166.40991]
+2. johnsonsu    DO NOT REJECT
+		P-value for test 0.49123
+		Parameters      [0.56954, 1.46645, 3099.44442, 334.70417]
+3. laplace      DO NOT REJECT
+		P-value for test 0.44183
+		Parameters      [2948.0, 229.62172]
+4. loglaplace   DO NOT REJECT
+		P-value for test 0.11427
+		Parameters      [12.06648, -2.44514, 2950.44517]
+5. beta         DO NOT REJECT
+		P-value for test 0.07733
+		Parameters      [10450720.70391, 52.93258, -441733462.15746, 441738628.89654]
+====================================
+Hour 19
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.99747
+		Parameters      [-0.30814, 0.90769, 1516.95216, 95.22719]
+2. loglaplace   DO NOT REJECT
+		P-value for test 0.07628
+		Parameters      [11.6851, -0.03111, 1544.03111]
+3. logistic     DO NOT REJECT
+		P-value for test 0.07618
+		Parameters      [1562.0299, 97.3611]
+4. laplace      REJECT
+		P-value for test 0.04906
+		Parameters      [1544.0, 132.14607]
+5. lognorm      REJECT
+		P-value for test 0.00168
+		Parameters      [0.01331, -13612.87104, 15182.00714]
+====================================
+Hour 20
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.53374
+		Parameters      [0.01367, 1.11263, 1040.19125, 99.80769]
+2. logistic     DO NOT REJECT
+		P-value for test 0.52604
+		Parameters      [1038.46317, 69.19534]
+3. laplace      DO NOT REJECT
+		P-value for test 0.41627
+		Parameters      [1042.0, 95.17978]
+4. t            REJECT
+		P-value for test 0.0114
+		Parameters      [115409.39934, 1037.41295, 146.59012]
+5. norm         REJECT
+		P-value for test 0.01139
+		Parameters      [1037.41199, 146.59875]
+====================================
+Hour 21
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.89485
+		Parameters      [-0.60844, 1.166, 680.90039, 104.6673]
+2. logistic     DO NOT REJECT
+		P-value for test 0.11315
+		Parameters      [750.46033, 75.511]
+3. laplace      REJECT
+		P-value for test 0.04882
+		Parameters      [740.0, 104.02622]
+4. t            REJECT
+		P-value for test 0.01254
+		Parameters      [56622.08857, 757.71206, 146.75887]
+5. norm         REJECT
+		P-value for test 0.01254
+		Parameters      [757.71161, 146.76743]
+====================================
+Hour 22
+1. johnsonsu    DO NOT REJECT
+		P-value for test 0.7535
+		Parameters      [-1.03397, 0.94234, 258.66902, 37.3722]
+2. logistic     REJECT
+		P-value for test 0.00019
+		Parameters      [324.98791, 53.85811]
+3. johnsonsb    REJECT
+		P-value for test 8e-05
+		Parameters      [21.65094, 5.58149, -273.03605, 29782.93205]
+4. gamma        REJECT
+		P-value for test 5e-05
+		Parameters      [21.58382, -167.36014, 23.5006]
+5. beta         REJECT
+		P-value for test 1e-05
+		Parameters      [16.31405, 9015692.99526, -118.75404, 253975906.86594]
