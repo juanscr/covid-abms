@@ -27,7 +27,7 @@ class Station:
         self.traffics = np.array(list(map(lambda x: x.traffic, data)))
 
     @staticmethod
-    def boxplot_dic(data_dic, prefix):
+    def boxplot_dic(data_dic, prefix, save=False, name="test.pdf"):
         xticks = []
         data_list = []
         for key in sorted(data_dic):
@@ -38,6 +38,8 @@ class Station:
         ax = fig.add_subplot(111)
         ax.boxplot(data_list)
         ax.set_xticklabels(xticks)
+        if save:
+            plt.savefig(name, bbox_inches='tight')
         plt.show()
 
     def get_data_time(self, get_time):
