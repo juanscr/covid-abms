@@ -79,13 +79,7 @@ agents =  H.workplace_locate(nc, agents, eod_rows, eod_rc, zc, zd, zpp)
 # Set disease stages
 agents = H.initDisease(count_s, count_e, count_i, agents, nag)
 
-import matplotlib.pyplot as plt
-x = [agent["hPoint"].x for agent in agents]
-y = [agent["hPoint"].y for agent in agents]
-plt.scatter(x, y, s=1)
-plt.plot(*polygons["border"][0].exterior.coords.xy, color='black')
-plt.show()
-# # Export data of geography data
+# Export data of geography data
 geo_data = rd.exportGeography(nc, borders, zpp, ids, file_geography)
 
 # Export data of boundary
