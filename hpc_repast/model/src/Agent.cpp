@@ -165,7 +165,7 @@ void RepastHPCAgent::move(int rank, std::vector<Border*> p, double minX, double 
         distance = MAX_MOVEMENT_IN_DESTINATION;
     }
 
-    if (diseaseStage != DEAD && diseaseStage != IMMUNE){
+    if (diseaseStage != DEAD){
         // Generate position
         core = Geography::genDistancePoly(rank, id_, p, ax, ay, xcoord, ycoord, distance, &newX, &newY);
         cr = core;

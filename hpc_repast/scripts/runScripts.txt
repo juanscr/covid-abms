@@ -1,0 +1,6 @@
+cpx=1
+cpy=12
+nag=1000
+fp=EOD_hpc.json
+path=../data/1k/12/
+python initAgents.py $cpx $cpy $nag $fp $path

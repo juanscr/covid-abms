@@ -274,31 +274,20 @@ void RepastHPCModel::agentsIncubation(std::vector<RepastHPCAgent*>& a){
 
 void RepastHPCModel::agentsMove(std::vector<RepastHPCAgent*>& a, int tick, int rank){
 	for(RepastHPCAgent* agent : a){
-		if (agent->getDiseaseStage() != IMMUNE && policyEnforcer.isAllowedToGoOut(agent->getId(), tick) && agent->getDiseaseStage()!=DEAD && (tick)%TickConverter::TICKS_PER_DAY <= agent->getWakeUpTime()  && agent->getWakeUpTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
-			try{
+		if(agent->getDiseaseStage() != DEAD){
+
+			if(policyEnforcer.isAllowedToGoOut(agent->getId(), tick) && (tick)%TickConverter::TICKS_PER_DAY <= agent->getWakeUpTime()  && agent->getWakeUpTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
 				if (rank != agent->getProcessWork()){
 					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessWork());
 				}
-			} catch(const std::exception& e){
-				std::cerr << e.what() << '\n';
-			}
-			agent->wakeUp();
-		}
-		else if (agent->getDiseaseStage() != IMMUNE && agent->getDiseaseStage()!=DEAD && (tick)%TickConverter::TICKS_PER_DAY <= agent->getReturnToHomeTime()  && agent->getReturnToHomeTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
-			try{
+				agent->wakeUp();
+			}else if ((tick)%TickConverter::TICKS_PER_DAY <= agent->getReturnToHomeTime()  && agent->getReturnToHomeTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
 				if (rank != agent->getProcessHome()){
 					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessHome());
 				}
-			} catch(const std::exception& e) {
-				std::cerr << e.what() << '\n';
-			}
-			agent->returnHome();
-		} else if (agent->getDiseaseStage() != IMMUNE && agent->getDiseaseStage()!=DEAD && agent->cr != rank){
-			try{
+				agent->returnHome();
+			}else if (agent->cr != rank) {
 				repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->cr);
-			}
-			catch(const std::exception& e) {
-				std::cerr << e.what() << '\n';
 			}
 		}
 	}
