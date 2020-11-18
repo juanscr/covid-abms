@@ -1,13 +1,16 @@
 #Properties file
 stop.at = 2
-count.of.agents = 100
-buffer.size = 1e-5
-procs.x = 5
+procs.x = 6
 procs.y = 2
-origin.x = -75.719375
-origin.y = 5.9839142
-extent.x = 0.5027474999999981
-extent.y = 0.5289742999999998
 infection.radius = 1
 random.seed = 1
-sit.zone.path = /home/user/Documentos/pcovid/ABMS/covid-abms/sit-zone-information/
+buffer.size = 0
+count.of.agents = 100
+agents.path = ../data/100k/12/agents/
+agents.file = agentsData_
+geography.path = ../data/100k/12/geography/
+bounds.file = bounds.json
+geography.file = geoData_
+policy.path = ../data/policies/
+policy.file = policy0.json
+write.states = 0

@@ -83,55 +83,55 @@ namespace Probabilities{
     Methods
     */
 
-        /**
-         * Get random number based on a triangular distribution
-         * @param min  Minimum
-         * @param mode Mode
-         * @param max  Maximum
-         * @param r Random in U[0,1)
-         */
-        double getRandomTriangular(double min, double mode, double max, double r);
+    /**
+     * Get random number based on a triangular distribution
+     * @param min  Minimum
+     * @param mode Mode
+     * @param max  Maximum
+     * @param r Random in U[0,1)
+     */
+    double getRandomTriangular(double min, double mode, double max, double r);
 
-        /**
-         * * Get random age (unit: age). Reference: <pending>
-         * */
-        int getRandomAge(double r_range, double r_age);
+    /**
+    * * Get random age (unit: age). Reference: <pending>
+     * */
+    int getRandomAge(double r_range, double r_age);
 
-        /**
-         * Get random incubation period (unit: days). Reference: <pending>
-         * */
-        double getRandomIncubationPeriod();
+    /**
+     * Get random incubation period (unit: days). Reference: <pending>
+     * */
+    double getRandomIncubationPeriod();
 
-        /**
-         * Get random patient type. Reference: <pending>
-        */
-       PatientType getRandomPatientType(double r1, double r2);
+    /**
+     * Get random patient type. Reference: <pending>
+    */
+    PatientType getRandomPatientType(double r1, double r2);
 
-       /**
-        * Is the patient going to die? Reference: <pending>
-        * */
-       bool isGoingToDie(double r, PatientType patientType);
+    /**
+     * Is the patient going to die? Reference: <pending>
+     * */
+    bool isGoingToDie(double r, PatientType patientType);
 
-       /**
-        * Is the citizen getting exposed? Reference: <pending>
-        * */
-	    bool isGettingExposed(double r, double incubationShift);
+    /**
+    * Is the citizen getting exposed? Reference: <pending>
+    * */
+	bool isGettingExposed(double r, double incubationShift);
 
-        Shift getRandomWorkShift(double r);
+    Shift getRandomWorkShift(double r);
 
-        /**
-         * Get random wake up time (unit: hours). Reference: <pending>
-        */
-        double getRandomWakeUpTime(Shift workShift);
+    /**
+     * Get random wake up time (unit: hours). Reference: <pending>
+    */
+    double getRandomWakeUpTime(Shift workShift);
 
-        /**
-         * Get random return to home time (unit: hours). Reference: <pending>
-        */
-        double getRandomReturnToHomeTime(Shift workShift);
+    /**
+     * Get random return to home time (unit: hours). Reference: <pending>
+    */
+    double getRandomReturnToHomeTime(Shift workShift);
 
-        double getRandomGamma(double alpha, double theta);
-        double getGammaPDF(double x, double alpha, double theta);
-        double getRandomTimeToDischarge();
+    double getRandomGamma(double alpha, double theta);
+    double getGammaPDF(double x, double alpha, double theta);
+    double getRandomTimeToDischarge();
 
 };
 

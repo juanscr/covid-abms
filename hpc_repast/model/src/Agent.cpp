@@ -19,25 +19,19 @@ void RepastHPCAgent::setProcessHome(int newProcessHome){
     processHome = newProcessHome;
 }
 
-void RepastHPCAgent::initAgent(double xhome, double yhome, double xwork, double ywork){
-    age = Probabilities::getRandomAge(repast::Random::instance()->nextDouble(), repast::Random::instance()->nextDouble());
-    diseaseStage = SUSCEPTIBLE;
-
-    // Set spatial and temporal attributes to agents
-	setXCoord(xhome);
-	setYCoord(yhome);
-	setHomePlace(std::vector<double> {xhome, yhome});
-	setWorkPlace(std::vector<double> {xwork, ywork});
+void RepastHPCAgent::initAgent(int stopAt){
 	setAtHome(true);
 	setWorkShift(Probabilities::getRandomWorkShift(repast::Random::instance()->nextDouble()));
-
     setWakeUpTime(Probabilities::getRandomWakeUpTime(getWorkShit()));
     setReturnToHomeTime(Probabilities::getRandomReturnToHomeTime(getWorkShit()));
-
 }
 
 void RepastHPCAgent::setAge(int newAge){
     age = newAge;
+}
+
+void RepastHPCAgent::setFamily(int newFamily){
+    family = newFamily;
 }
 
 void RepastHPCAgent::setXCoord(double newXCoord){
@@ -54,6 +48,19 @@ void RepastHPCAgent::setHomePlace(std::vector<double> newHomeplace){
 
 void RepastHPCAgent::setWorkPlace(std::vector<double> newWorkplace){
     workplace = newWorkplace;
+}
+
+
+void RepastHPCAgent::setHomeZone(std::string newHomeZone){
+    homeZone = newHomeZone;
+};
+
+void RepastHPCAgent::setWorkZone(std::string newWorkZone){
+    workZone = newWorkZone;
+};
+
+void RepastHPCAgent::setAverageWalk(double newAverageWalk){
+    averageWalk = newAverageWalk;
 }
 
 void RepastHPCAgent::setAtHome(bool new_atHome){
@@ -114,65 +121,64 @@ void RepastHPCAgent::initDisease(){
     }
 }
 
-void RepastHPCAgent::wakeUp(repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space){
+void RepastHPCAgent::wakeUp(){
     // Go to workplace
     atHome = false;
+    std::vector<double> agentloc;
 
     // Update coordinates
     xcoord = workplace.at(0);
     ycoord = workplace.at(1);
 
     // Set workplace position
-    agentLoc.clear();
-    agentLoc.push_back(xcoord);
-    agentLoc.push_back(ycoord);
-
-    if (!space->bounds().contains(agentLoc)){
-        std::cout << id_ << " not in bounds " << std::endl;
-    }
-
-    // Update location
-    space->moveTo(id_, agentLoc);
+    agentloc.push_back(xcoord);
+    agentloc.push_back(ycoord);
 }
 
-void RepastHPCAgent::returnHome(repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space){
+void RepastHPCAgent::returnHome(){
     // Go to workplace
     atHome = true;
+    std::vector<double> agentloc;
 
     // Update coordinates
     xcoord = homeplace.at(0);
     ycoord = homeplace.at(1);
 
     // Set workplace position
-    agentLoc.clear();
-    agentLoc.push_back(xcoord);
-    agentLoc.push_back(ycoord);
-
-    // Update location
-    space->moveTo(id_, agentLoc);
+    agentloc.push_back(xcoord);
+    agentloc.push_back(ycoord);
 }
 
-void RepastHPCAgent::move(polygon p, repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space, double minX, double maxX, double minY, double maxY){
-    std::vector<double> agentLoc;
-    space->getLocation(id_, agentLoc);
+void RepastHPCAgent::move(int rank, std::vector<Border*> p, double minX, double maxX, double minY, double maxY){
     double newX, newY;
+    double ax, ay;
+    double distance;
+    int core;
 
-    if (diseaseStage != DEAD){
-        //Geography::genDistance(minX, maxX, minY, maxY, agentLoc[0], agentLoc[1], MAX_MOVEMENT_IN_DESTINATION, &newX, &newY);
-        Geography::genDistancePoly(p, agentLoc[0], agentLoc[1], MAX_MOVEMENT_IN_DESTINATION, &newX, &newY);
+    if(atHome){
+        ax = homeplace.at(0);
+        ay = homeplace.at(1);
+        distance = averageWalk;
+    }else{
+        ax = workplace.at(0);
+        ay = workplace.at(1);
+        distance = MAX_MOVEMENT_IN_DESTINATION;
+    }
+
+    if (diseaseStage != DEAD && diseaseStage != IMMUNE){
+        // Generate position
+        core = Geography::genDistancePoly(rank, id_, p, ax, ay, xcoord, ycoord, distance, &newX, &newY);
+        cr = core;
 
         // Update coordinates
         xcoord = newX;
         ycoord = newY;
-
-        // Set location
-        agentLoc.clear();
-
-        agentLoc.push_back(newX);
-        agentLoc.push_back(newY);
-
-        // Update location
-        space->moveTo(id_, agentLoc);
+    }else{
+        if(atHome){
+            cr = processHome;
+        }else{
+            cr = processWork;
+        }
     }
 }
 
@@ -210,14 +216,12 @@ void RepastHPCAgent::setInfected(){
 
     if (Probabilities::isGoingToDie(r3, patient)){
         diseaseStageEnd = true;
-    }else
-    {
+    }else{
         diseaseStageEnd = false;
     }
 
     double daysToEvent = Probabilities::getRandomTimeToDischarge() - Probabilities::INFECTION_MIN;
     ticksToDiseaseEnd = currentTick + TickConverter::daysToTicks(daysToEvent);
-
 }
 
 void RepastHPCAgent::diseaseActions(double currentTick){
@@ -249,18 +253,17 @@ void RepastHPCAgent::setInfections(int newInfections){
 }
 
 /* Serializable Agent Package Data */
+AgentPackage::AgentPackage(){ }
 
-RepastHPCAgentPackage::RepastHPCAgentPackage(){ }
-
-RepastHPCAgentPackage::RepastHPCAgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome,
-int _age,
+AgentPackage::AgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome,
+int _age, int _family,
 bool _atHome, Shift _workShift, double _wakeUpTime, double _returnToHomeTime,
 DiseaseStage _diseaseStage, PatientType _patientType,
 double _incubationTime, double _incubationShift, double _ticksToInfected, bool _diseaseStageEnd, double _ticksToDiseaseEnd, int _infections,
 std::vector<double> _homeplace, std::vector<double> _workplace,
-double _xcoord, double _ycoord):
+double _xcoord, double _ycoord, double _averageWalk, std::string _homeZone, std::string _workZone):
 id(_id), rank(_rank), type(_type), currentRank(_currentRank), processWork(_processWork), processHome(_processHome),
-age(_age), atHome(_atHome),
+age(_age), family(_family), atHome(_atHome),
 workShift(_workShift), wakeUpTime(_wakeUpTime), returnToHomeTime(_returnToHomeTime),
 diseaseStage(_diseaseStage), patientType(_patientType), incubationTime(_incubationTime), incubationShift(_incubationShift), ticksToInfected(_ticksToInfected), diseaseStageEnd(_diseaseStageEnd), ticksToDiseaseEnd(_ticksToDiseaseEnd), infections(_infections),
-homeplace(_homeplace), workplace(_workplace), xcoord(_xcoord), ycoord(_ycoord) { }
+homeplace(_homeplace), workplace(_workplace), xcoord(_xcoord), ycoord(_ycoord), averageWalk(_averageWalk), homeZone(_homeZone), workZone(_workZone) { }

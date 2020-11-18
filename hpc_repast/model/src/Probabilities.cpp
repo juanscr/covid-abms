@@ -18,7 +18,6 @@ double Probabilities::getRandomTriangular(double min, double mode, double max, d
  * Get random age (unit: age). Reference: <pending>
 */
 int Probabilities::getRandomAge(double r_range, double r_age){
-
    double cummulativeProbability = 0;
    int age = -1;
 
@@ -55,7 +54,6 @@ double Probabilities::getRandomIncubationPeriod() {
  * Get random patient type. Reference: <pending>
 */
 PatientType Probabilities::getRandomPatientType(double r1, double r2){
-
     if (r1 < 0.111){
         return NO_SYMPTOMS;
     }else{
@@ -68,14 +66,12 @@ PatientType Probabilities::getRandomPatientType(double r1, double r2){
             return CRITICAL_SYMPTOMS;
         }
     }
-
 }
 
 /**
  * Is the patient going to die? Reference: <pending>
 */
 bool Probabilities::isGoingToDie(double r, PatientType patientType){
-
     switch (patientType)
     {
     case SEVERE_SYMPTOMS:
@@ -145,9 +141,8 @@ double Probabilities::getGammaPDF(double x, double alpha, double theta){
 
 /**
  * Is the citizen getting exposed? Reference: <pending>
- */
+*/
 bool Probabilities::isGettingExposed(double r, double incubationShift){
-
     if (incubationShift < INFECTION_MIN){
         return false;
     }
@@ -174,7 +169,6 @@ double Probabilities::getRandomTimeToDischarge(){
  * * Get random wake up time (unit: hours). Reference: <pending>
 */
 double Probabilities::getRandomWakeUpTime(Shift workShift){
-
     double displacement;
     int init;
     int end;
