@@ -1,6 +1,9 @@
 /*Zone.cpp*/
 #include "Zone.h"
+Zone::~Zone(){};
 
-Zone::~Zone(){}
+void Zone::createMultipolygon(){
+    boost::geometry::read_wkt(wkt, vertices);
+}
 
-Zone::Zone(){};
+Border::~Border(){};

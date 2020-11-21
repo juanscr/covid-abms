@@ -1,7 +1,6 @@
 /* Model.h */
-
-#ifndef DEMO_03_MODEL
-#define DEMO_03_MODEL
+#ifndef MODEL
+#define MODEL
 
 #include <boost/mpi.hpp>
 #include "repast_hpc/Schedule.h"
@@ -19,45 +18,15 @@
 #include "Probabilities.h"
 #include "PolicyEnforcer.h"
 #include "Zone.h"
+#include "PolicyEnforcer.h"
+#include "Reader.h"
+#include "Package.h"
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
+#include <boost/geometry/geometries/multi_polygon.hpp>
 #include <fstream>
-
-/* Agent Package Provider */
-class RepastHPCAgentPackageProvider {
-	private:
-	repast::SharedContext<RepastHPCAgent>* agents;
-
-public:
-    RepastHPCAgentPackageProvider(repast::SharedContext<RepastHPCAgent>* agentPtr);
-    void providePackage(RepastHPCAgent * agent, std::vector<RepastHPCAgentPackage>& out);
-    void provideContent(repast::AgentRequest req, std::vector<RepastHPCAgentPackage>& out);
-};
-
-/* Agent Package Receiver */
-class RepastHPCAgentPackageReceiver {
-	private:
-	repast::SharedContext<RepastHPCAgent>* agents;
-
-public:
-    RepastHPCAgentPackageReceiver(repast::SharedContext<RepastHPCAgent>* agentPtr);
-    RepastHPCAgent * createAgent(RepastHPCAgentPackage package);
-    void updateAgent(RepastHPCAgentPackage package);
-};
-
-/* Data Collection */
-
-class DataSource_AgentDiseaseStage : public repast::TDataSource<int>{
-	private:
-		repast::SharedContext<RepastHPCAgent>* context;
-		DiseaseStage diseaseStage;
-	public:
-		DataSource_AgentDiseaseStage(repast::SharedContext<RepastHPCAgent>* c, DiseaseStage ds);
-		int getData();
-};
-
 
 class RepastHPCModel{
 	int stopAt;
@@ -66,42 +35,49 @@ class RepastHPCModel{
 	int procsX;
 	int procsY;
 	//Sit zopne path
-	std::string szp;
 	double originX;
 	double originY;
 	double extentX;
 	double extentY;
 	double maxX;
 	double maxY;
-	double infectionRadius;
 	double distance;
+	// Disease stage attributes
+	double infectionRadius;
 	double rand_exposed;
-	int seed;
 
-	// Testing geography
+	// Boost geography
 	typedef boost::geometry::model::d2::point_xy<double> point;
 	typedef boost::geometry::model::polygon<point> polygon;
+	typedef boost::geometry::model::multi_polygon<polygon> multipolygon;
 	polygon poly;
-	std::string fig;
-	int npoints;
-	std::vector<point> points;
-	std::vector<polygon> ext_borders;
+	// std::vector<Geography::border> border;
 	std::vector<Zone*> zones;
+	std::vector<Border*> border;
+	std::string geographyPath;
+	std::string boundsFile;
+	std::string geographyFile;
+	std::string agentsPath;
+	std::string agentsFile;
+	std::vector<RepastHPCAgent*> agents0;
 
 	// CSV File with agent states
 	std::mutex logMutex;
 	std::string csvFile;
+	bool write;
 
-	// Policy Enforcer
+	// Policies
 	PolicyEnforcer policyEnforcer;
+	std::string policyPath;
+	std::string policyFile;
+	std::vector<policy> policies;
 
+	// Packages
 	repast::Properties* props;
 	repast::SharedContext<RepastHPCAgent> context;
-	RepastHPCAgentPackageProvider* provider;
-	RepastHPCAgentPackageReceiver* receiver;
-
+	AgentPackageProvider* provider;
+	AgentPackageReceiver* receiver;
 	repast::SVDataSet* agentValues;
-    repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* continuousSpace;
 
 public:
 	RepastHPCModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
@@ -110,11 +86,24 @@ public:
 	void requestAgents();
 	void cancelAgentRequests();
 	void removeLocalAgents();
-	int getProcess(double x, double y);
+	// Actions for each tick
 	void step();
+	// Update agents: diseaseStage and position
+	void agentsUpdate(std::vector<RepastHPCAgent*>& agents, int tick, int rank);
+	// Select agents according to disease stage
+	void agentsSelect(std::vector<RepastHPCAgent*> agents, std::vector<RepastHPCAgent*>& s, std::vector<RepastHPCAgent*>& i);
+	// Sort agents by coordinate
+	void agentsSort(std::vector<RepastHPCAgent*>& a);
+	// Make infect agents to interact with susceptibles
+	void agentsInfect(std::vector<RepastHPCAgent*>& S, std::vector<RepastHPCAgent*>& I);
+	// Step the incubation shift
+	void agentsIncubation(std::vector<RepastHPCAgent*>& a);
+	// Move agents to workplace or homplace if necessary
+	void agentsMove(std::vector<RepastHPCAgent*>& a, int tick, int rank);
+	// Write agents states
+	void agentStates(std::vector<RepastHPCAgent*> a, int tick, bool write);
 	void initSchedule(repast::ScheduleRunner& runner);
 	void recordResults();
-	bool fileExists(std::string& fileName);
 	template <typename filename, typename T1, typename T2, typename T3, typename T4, typename T5>
 	bool writeCsvFile(filename &fileName, T1 column1, T2 column2, T3 column3, T4 column4, T5 column5);
 };

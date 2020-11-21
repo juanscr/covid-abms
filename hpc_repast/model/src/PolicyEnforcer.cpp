@@ -1,6 +1,5 @@
 #include "PolicyEnforcer.h"
-PolicyEnforcer::PolicyEnforcer(void){
-}
+PolicyEnforcer::PolicyEnforcer(void){}
 
 void PolicyEnforcer::schedulePolicy(Policy policy, double startDay, double endDay, repast::ScheduleRunner& runner){
     // Add policy

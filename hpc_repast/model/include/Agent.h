@@ -1,6 +1,6 @@
 /* Agent.h */
-#ifndef DEMO_03_AGENT
-#define DEMO_03_AGENT
+#ifndef AGENT
+#define AGENT
 
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/SharedContext.h"
@@ -16,6 +16,7 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
+#include <boost/geometry/geometries/multi_polygon.hpp>
 
 /* Agents */
 class RepastHPCAgent{
@@ -27,21 +28,21 @@ private:
     int processWork;
     int processHome;
 	int age;
+    int family;
 
     // Tick converter
     double currentTick;
 
-    // family
-
     // Boost geography
     typedef boost::geometry::model::d2::point_xy<double> point;
     typedef boost::geometry::model::polygon<point> polygon;
+    typedef boost::geometry::model::multi_polygon<polygon> multipolygon;
 
     // Position
     double xcoord;
     double ycoord;
     std::vector<double> agentLoc;
-    const double MAX_MOVEMENT_IN_DESTINATION = 50;
+    const double MAX_MOVEMENT_IN_DESTINATION = 500;
 
     // Routine attributes
     bool atHome;
@@ -62,17 +63,20 @@ private:
     // Projection attributes
     std::vector<double> homeplace;
     std::vector<double> workplace;
-
-    // Displacement factor: unit (meters)
-    double displacementFactor = 50;
+    std::string homeZone;
+    std::string workZone;
+    double averageWalk;
 
 public:
     RepastHPCAgent(repast::AgentId id);
 	RepastHPCAgent(){}
     ~RepastHPCAgent();
 
+    // Current core
+    int cr;
+
     /* Initialization methods */
-    void initAgent(double xhome, double yhome, double xwork, double ywork);
+    void initAgent(int stopAt);
 
     /* Required Getters */
     virtual repast::AgentId& getId(){return id_;}
@@ -93,6 +97,10 @@ public:
     DiseaseStage getDiseaseStage(){return diseaseStage;}
     void setDiseaseStage(DiseaseStage newDiseaseStage);
 
+    // Family
+    int getFamily(){return family;}
+    void setFamily(int newFamily);
+
     // Position
     double getXCoord(){return xcoord;}
     void setXCoord(double newXCoord);
@@ -110,6 +118,15 @@ public:
 
     bool getAtHome(){return atHome;}
     void setAtHome(bool new_atHome);
+
+    std::string getHomeZone(){return homeZone;}
+    void setHomeZone(std::string newHomeZone);
+
+    std::string getWorkZone(){return workZone;}
+    void setWorkZone(std::string newWorkZone);
+
+    double getAverageWalk(){return averageWalk;}
+    void setAverageWalk(double newAverageWalk);
 
     Shift getWorkShit(){return workShift;}
     void setWorkShift(Shift new_workShift);
@@ -151,18 +168,14 @@ public:
     /* Setter */
     void set(int currentRank);
 
-    /* Actions */
-    bool cooperate();// Will indicate whether the agent cooperates or not; probability determined by = c / total
-    void play(repast::SharedContext<RepastHPCAgent>* context);// Choose three other agents from the given context and see if they cooperate or not
-
     // Wake up
-    void wakeUp(repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space);
+    void wakeUp();
 
     // Return home
-    void returnHome(repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space);
+    void returnHome();
 
     // Ask agent to move
-    void move(polygon p , repast::SharedContinuousSpace<RepastHPCAgent, repast::StrictBorders, repast::SimpleAdder<RepastHPCAgent> >* space, double minX, double maxX, double minY, double maxY);
+    void move(int rank, std::vector<Border*> p, double minX, double maxX, double minY, double maxY);
 
     // Ask if agent is active case
     bool isActiveCase();
@@ -172,7 +185,7 @@ public:
 };
 
 /* Serializable Agent Package */
-struct RepastHPCAgentPackage {
+struct AgentPackage {
 public:
     int id;
     int rank;
@@ -181,6 +194,7 @@ public:
     int processWork;
     int processHome;
     int age;
+    int family;
     bool atHome;
     Shift workShift;
     double wakeUpTime;
@@ -197,15 +211,18 @@ public:
     std::vector<double> workplace;
     double xcoord;
     double ycoord;
+    double averageWalk;
+    std::string homeZone;
+    std::string workZone;
 
     /* Constructors */
-    RepastHPCAgentPackage(); // For serialization
-    RepastHPCAgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome, int _age,
+    AgentPackage(); // For serialization
+    AgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome, int _age, int _family,
     bool _atHome, Shift _workShift, double _wakeUpTime, double _returnToHomeTime,
     DiseaseStage _diseaseStage, PatientType patientType,
     double incubationTime, double incubationShift, double ticksToInfected, bool diseaseStageEnd, double ticksToDiseaseEnd, int infections,
     std::vector<double> _homeplace, std::vector<double> _workplace,
-    double _xcoord, double _ycoord);
+    double _xcoord, double _ycoord, double _averageWalk, std::string _homeZone, std::string _workZone);
 
     /* For archive packaging */
     template<class Archive>
@@ -217,6 +234,7 @@ public:
         ar & processWork;
         ar & processHome,
         ar & age;
+        ar & family;
         ar & atHome;
         ar & workShift;
         ar & wakeUpTime;
@@ -226,6 +244,9 @@ public:
         ar & workplace;
         ar & xcoord;
         ar & ycoord;
+        ar & averageWalk;
+        ar & homeZone;
+        ar & workZone;
         ar & ticksToInfected;
         ar & diseaseStageEnd;
         ar & ticksToDiseaseEnd;
