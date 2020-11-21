@@ -84,5 +84,35 @@ class Station:
         fit_data(data_sat, name_gen("sat"))
         fit_data(data_sun, name_gen("sun"))
 
+    def calculate_lambda(self, name_file):
+        data_nh, data_sat, data_sun = self.separate_data()
+
+        # Means of each section
+        mean_nh = data_nh.mean(axis=0)
+
+        mean_sat = data_sat.mean(axis=0)
+        size_diff = mean_nh.size - mean_sat.size
+        mean_sat = np.hstack((mean_sat, -np.ones(size_diff)))
+
+        mean_sun = data_sun.mean(axis=0)
+        size_diff = mean_nh.size - mean_sun.size
+        mean_sun = np.hstack((mean_sun, -np.ones(size_diff)))
+
+        # Means
+        means = np.vstack((mean_nh, mean_sat, mean_sun))
+        titles = ["Non-holiday", "Saturday", "Sunday"]
+
+        # Write in file
+        file0 = open(name_file, "a")
+        file0.write(self.name + "\n")
+        for i in range(means.shape[0]):
+            file0.write(titles[i] + ",")
+            for j in range(means.shape[1]):
+                if means[i, j] == -1:
+                    continue
+                file0.write(str(means[i, j]) + ",")
+            file0.write("\n")
+        file0.close()
+
     def __str__(self):
         return self.name

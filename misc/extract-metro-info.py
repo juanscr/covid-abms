@@ -28,9 +28,9 @@ lambdas_file = "lambda.csv"
 
 for station_name in all_stations:
     station = Station(station_name, dataset, fixed_year=2019)
-    # data_dic = station.get_data_time(lambda x: x.month)
-    # data_dic1 = station.get_data_time(lambda x: x.weekday())
+    data_dic = station.get_data_time(lambda x: x.month)
+    data_dic1 = station.get_data_time(lambda x: x.weekday())
     station.calculate_lambda(lambdas_file)
-    # Station.boxplot_dic(data_dic, "m = ", save=True, name=directory(station_name + "-month-boxplot.pdf"))
-    # Station.boxplot_dic(data_dic1, "d = ", save=True, name=directory(station_name + "-day-boxplot.pdf"))
-    # station.create_fitting()
+    Station.boxplot_dic(data_dic, "m = ", save=True, name=directory(station_name + "-month-boxplot.pdf"))
+    Station.boxplot_dic(data_dic1, "d = ", save=True, name=directory(station_name + "-day-boxplot.pdf"))
+    station.create_fitting()
