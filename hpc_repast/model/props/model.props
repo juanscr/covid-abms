@@ -1,11 +1,11 @@
 #Properties file
-stop.at = 8641
-procs.x = 1
-procs.y = 12
+stop.at = 2
+procs.x = 6
+procs.y = 2
 infection.radius = 1
 random.seed = 1
 buffer.size = 0
-count.of.agents = 100000
+count.of.agents = 100
 agents.path = ../data/100k/12/agents/
 agents.file = agentsData_
 geography.path = ../data/100k/12/geography/

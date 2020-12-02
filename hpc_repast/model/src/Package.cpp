@@ -53,6 +53,7 @@ RepastHPCAgent * AgentPackageReceiver::createAgent(AgentPackage package){
 	agent->setDiseaseStageEnd(package.diseaseStageEnd);
 	agent->setTicksToDiseaseEnd(package.ticksToDiseaseEnd);
 	agent->setInfections(package.infections);
+	agent->setPatientType(package.patientType);
 
     return agent;
 }
@@ -87,6 +88,7 @@ void AgentPackageReceiver::updateAgent(AgentPackage package){
 	agent->setDiseaseStageEnd(package.diseaseStageEnd);
 	agent->setTicksToDiseaseEnd(package.ticksToDiseaseEnd);
 	agent->setInfections(package.infections);
+	agent->setPatientType(package.patientType);
 }
 
 DataSource_AgentDiseaseStage::DataSource_AgentDiseaseStage(repast::SharedContext<RepastHPCAgent>* c, DiseaseStage ds) : context(c), diseaseStage(ds){ }

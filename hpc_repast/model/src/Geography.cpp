@@ -20,10 +20,10 @@ double Geography::getDistance(double x1, double y1, double x2, double y2){
     return distance;
 }
 
-void Geography::genDistance(int rank,double minX, double maxX, double minY, double maxY, double x, double y, double factor, double* newX, double* newY){
+void Geography::genDistance(repast::Random* r, int rank,double minX, double maxX, double minY, double maxY, double x, double y, double factor, double* newX, double* newY){
 
     // Random for latitude displacement
-    double rand_lat = repast::Random::instance()->nextDouble();
+    double rand_lat = r->nextDouble();
     double rand_lon = sqrt(1 - pow(rand_lat, 2));
 
     // Calculate change in latitude and longitude
@@ -31,8 +31,8 @@ void Geography::genDistance(int rank,double minX, double maxX, double minY, doub
     double dlon = rand_lon * factor * Geography::delta_lon;
 
     // Get direction of latitude in longitude
-    double rlat = repast::Random::instance()->nextDouble();
-    double rlon = repast::Random::instance()->nextDouble();
+    double rlat = r->nextDouble();
+    double rlon = r->nextDouble();
 
     // Generate new position
     if (rlat > 0.5){
@@ -49,8 +49,9 @@ void Geography::genDistance(int rank,double minX, double maxX, double minY, doub
 
 }
 
-int Geography::genDistancePoly(int rank, repast::AgentId id, std::vector<Border*> p, double ax, double ay, double x, double y, double factor, double* newX, double* newY){
+int Geography::genDistancePoly(repast::Random* r, int rank, repast::AgentId id, std::vector<Border*> p, double ax, double ay, double x, double y, double factor, double* newX, double* newY){
     // Point for new coordinate
+    // factor = factor * 1;
     point newPoint;
 
     // Random for latitude displacement
@@ -71,14 +72,14 @@ int Geography::genDistancePoly(int rank, repast::AgentId id, std::vector<Border*
     bool cr = false;
 
     do{
-        rand_lat = repast::Random::instance()->nextDouble();
+        rand_lat = r->nextDouble();
         rand_lon = sqrt(1 - pow(rand_lat, 2));
 
         dlat = rand_lat * factor * Geography::delta_lat;
         dlon = rand_lon * factor * Geography::delta_lon;
 
-        rlat = repast::Random::instance()->nextDouble();
-        rlon = repast::Random::instance()->nextDouble();
+        rlat = r->nextDouble();
+        rlon = r->nextDouble();
 
         if (rlat > 0.5){
             *newX = x + dlat;

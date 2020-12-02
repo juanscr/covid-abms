@@ -76,7 +76,7 @@ public:
     int cr;
 
     /* Initialization methods */
-    void initAgent(int stopAt);
+    void initAgent(repast::Random* r);
 
     /* Required Getters */
     virtual repast::AgentId& getId(){return id_;}
@@ -139,11 +139,13 @@ public:
     void setReturnToHomeTime(double newReturnToHomeTime);
 
     // Disease actions
-    void initDisease();
-    void setInfected();
-    void setExposed();
+    void initDisease(repast::Random* r, std::default_random_engine* g);
+    void setInfected(repast::Random* r, std::default_random_engine* g);
+    void setExposed(repast::Random* r);
 
     PatientType getPatientType(){return patientType;}
+    void setPatientType(PatientType newPatientType);
+
     double getIncubationTime(){return incubationTime;}
 
     double getIncubatioShift(){return incubationShift;}
@@ -175,13 +177,13 @@ public:
     void returnHome();
 
     // Ask agent to move
-    void move(int rank, std::vector<Border*> p, double minX, double maxX, double minY, double maxY);
+    void move(repast::Random* r, int rank, std::vector<Border*> p, double minX, double maxX, double minY, double maxY);
 
     // Ask if agent is active case
     bool isActiveCase();
 
     // Actions according to disease stage of agent
-    void diseaseActions(double currentTick);
+    void diseaseActions(repast::Random* r, double currentTick, std::default_random_engine* g);
 };
 
 /* Serializable Agent Package */

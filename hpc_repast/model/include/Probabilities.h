@@ -100,7 +100,7 @@ namespace Probabilities{
     /**
      * Get random incubation period (unit: days). Reference: <pending>
      * */
-    double getRandomIncubationPeriod();
+    double getRandomIncubationPeriod(repast::Random* r);
 
     /**
      * Get random patient type. Reference: <pending>
@@ -122,16 +122,16 @@ namespace Probabilities{
     /**
      * Get random wake up time (unit: hours). Reference: <pending>
     */
-    double getRandomWakeUpTime(Shift workShift);
+    double getRandomWakeUpTime(repast::Random* r, Shift workShift);
 
     /**
      * Get random return to home time (unit: hours). Reference: <pending>
     */
-    double getRandomReturnToHomeTime(Shift workShift);
+    double getRandomReturnToHomeTime(repast::Random* r, Shift workShift);
 
-    double getRandomGamma(double alpha, double theta);
+    double getRandomGamma(repast::Random* r, double alpha, double theta);
     double getGammaPDF(double x, double alpha, double theta);
-    double getRandomTimeToDischarge();
+    double getRandomTimeToDischarge(std::default_random_engine* g, repast::Random* r);
 
 };
 

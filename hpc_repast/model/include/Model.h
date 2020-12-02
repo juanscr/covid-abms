@@ -34,6 +34,7 @@ class RepastHPCModel{
 	double bufferSize;
 	int procsX;
 	int procsY;
+	int day;
 	//Sit zopne path
 	double originX;
 	double originY;
@@ -79,6 +80,10 @@ class RepastHPCModel{
 	AgentPackageReceiver* receiver;
 	repast::SVDataSet* agentValues;
 
+	// Random generators
+	repast::Random* r;
+	std::default_random_engine g;
+
 public:
 	RepastHPCModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
 	~RepastHPCModel();
@@ -86,6 +91,8 @@ public:
 	void requestAgents();
 	void cancelAgentRequests();
 	void removeLocalAgents();
+	// Generate random uniform
+	double rand();
 	// Actions for each tick
 	void step();
 	// Update agents: diseaseStage and position

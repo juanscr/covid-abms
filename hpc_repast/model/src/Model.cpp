@@ -56,6 +56,8 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 
 	// Distributions
 	initializeRandom(*props, comm);
+	r = repast::Random::instance();
+	g.seed(crank * 1000);
 
 	if(repast::RepastProcess::instance()->rank() == 0){
 		props->writeToSVFile("./output/record.csv");
@@ -115,20 +117,29 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 
 	for (RepastHPCAgent* agent : agents0){
 		// Set the disease stage
-		agent -> initAgent(stopAt);
-		agent -> initDisease();
+		agent -> initAgent(r);
+
+		// Setup initial disease stage
+		agent -> initDisease(r, &g);
+		if(agent->getDiseaseStage() == INFECTED){
+			while(agent->getPatientType() == SEVERE_SYMPTOMS || agent->getPatientType() == CRITICAL_SYMPTOMS){
+				agent->initDisease(r, &g);
+			}
+		}
+
 		// Add agent to context
 		context.addAgent(agent);
 	}
 
 	for (policy p: policies){
-		policyEnforcer.schedulePolicy(p.p, p.start, p.end, runner);
+		policyEnforcer.schedulePolicy(p, runner);
 	}
 }
 
 void RepastHPCModel::step(){
 	int crank = repast::RepastProcess::instance()->rank();
 	int ctick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	day = (int) TickConverter::ticksToDays(ctick) % 7;
 
 	// Print current tick
 	if (crank == 0){
@@ -184,11 +195,11 @@ void RepastHPCModel::agentsUpdate(std::vector<RepastHPCAgent*>& agents, int tick
 	for(RepastHPCAgent* agent : agents){
 		// Update disease stage
 		if(agent->isActiveCase()){
-			agent->diseaseActions(tick);
+			agent->diseaseActions(r, tick, &g);
 		}
 		// Update positions
-		if(policyEnforcer.isAllowedToGoOut(agent->getId(), tick)){
-			agent->move(rank, border, originX, maxX, originY, maxY);
+		if(policyEnforcer.isAllowedToGoOut(agent, tick, rand(), day)){
+			agent->move(r, rank, border, originX, maxX, originY, maxY);
 		}else{
 			agent->cr = agent->getId().currentRank();
 		}
@@ -239,10 +250,10 @@ void RepastHPCModel::agentsInfect(std::vector<RepastHPCAgent*>& S, std::vector<R
 					distance = infected->getDistance(susceptible->getXCoord(), susceptible->getYCoord());
 					// Check if susceptible can be infected
 					if (distance <= infectionRadius && susceptible->getDiseaseStage() == SUSCEPTIBLE){
-						rand_exposed = repast::Random::instance()->nextDouble();
+						rand_exposed = rand();
 						if(Probabilities::isGettingExposed(rand_exposed, infected->getIncubatioShift())){
 							infected->setInfections(1);
-							susceptible->setExposed();
+							susceptible->setExposed(r);
 						}
 					}
 					if(cr && i < I.size()-1){
@@ -274,20 +285,31 @@ void RepastHPCModel::agentsIncubation(std::vector<RepastHPCAgent*>& a){
 
 void RepastHPCModel::agentsMove(std::vector<RepastHPCAgent*>& a, int tick, int rank){
 	for(RepastHPCAgent* agent : a){
-		if(agent->getDiseaseStage() != DEAD){
-
-			if(policyEnforcer.isAllowedToGoOut(agent->getId(), tick) && (tick)%TickConverter::TICKS_PER_DAY <= agent->getWakeUpTime()  && agent->getWakeUpTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
+		if (agent->getDiseaseStage() != IMMUNE && policyEnforcer.isAllowedToGoOut(agent, tick, rand(), day) && agent->getDiseaseStage()!=DEAD && (tick)%TickConverter::TICKS_PER_DAY <= agent->getWakeUpTime()  && agent->getWakeUpTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
+			try{
 				if (rank != agent->getProcessWork()){
 					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessWork());
 				}
-				agent->wakeUp();
-			}else if ((tick)%TickConverter::TICKS_PER_DAY <= agent->getReturnToHomeTime()  && agent->getReturnToHomeTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
+			} catch(const std::exception& e){
+				std::cerr << e.what() << '\n';
+			}
+			agent->wakeUp();
+		}
+		else if (agent->getDiseaseStage() != IMMUNE && agent->getDiseaseStage()!=DEAD && (tick)%TickConverter::TICKS_PER_DAY <= agent->getReturnToHomeTime()  && agent->getReturnToHomeTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
+			try{
 				if (rank != agent->getProcessHome()){
 					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessHome());
 				}
-				agent->returnHome();
-			}else if (agent->cr != rank) {
+			} catch(const std::exception& e) {
+				std::cerr << e.what() << '\n';
+			}
+			agent->returnHome();
+		} else if (agent->getDiseaseStage() != IMMUNE && agent->getDiseaseStage()!=DEAD && agent->cr != rank){
+			try{
 				repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->cr);
+			}
+			catch(const std::exception& e) {
+				std::cerr << e.what() << '\n';
 			}
 		}
 	}
@@ -343,4 +365,8 @@ bool RepastHPCModel::writeCsvFile(filename &fileName, T1 column1, T2 column2, T3
     } else {
         return false;
     }
+}
+
+double RepastHPCModel::rand(){
+	return r->nextDouble();
 }

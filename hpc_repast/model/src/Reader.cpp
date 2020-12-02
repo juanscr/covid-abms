@@ -196,6 +196,20 @@ void Reader::getPolicies(std::string path, std::string filename, int stopAt, std
             pol.end = data.get<double>(key + ".end");
         }
 
+        // Add allowed ages
+        if(d== 1 || d == 2){
+            pol.ageMin = data.get<int>(key + ".ageMin");
+            pol.ageMax = data.get<int>(key + ".ageMax");
+        }
+
+        // Curfew
+        if (d == 2){
+            pol.c = data.get<int>(key + ".curfew");
+        }
+
+        // Factor of agents that can move
+        pol.factor = data.get<double>(key + ".factor");
+
         // Append to vector of policies
         policies.push_back(pol);
     }

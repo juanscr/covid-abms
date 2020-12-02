@@ -39,12 +39,12 @@ int Probabilities::getRandomAge(double r_range, double r_age){
 /**
  * Get random incubation period (unit: days). Reference: <pending>
  * */
-double Probabilities::getRandomIncubationPeriod() {
+double Probabilities::getRandomIncubationPeriod(repast::Random* r) {
     double t = std::pow(Probabilities::MEAN_INCUBATION_PERIOD, 2) + std::pow(Probabilities::STD_INCUBATION_PERIOD, 2);
     double mu = std::log(std::pow(Probabilities::MEAN_INCUBATION_PERIOD, 2) / std::sqrt(t));
     double sigma = std::log(t / std::pow(Probabilities::MEAN_INCUBATION_PERIOD, 2));
 
-    repast::NormalGenerator normalDistribution  = repast::Random::instance()->createNormalGenerator(mu, sigma);
+    repast::NormalGenerator normalDistribution  = r->createNormalGenerator(mu, sigma);
 	double y = normalDistribution.next();
 
 	return std::exp(y);
@@ -89,7 +89,7 @@ bool Probabilities::isGoingToDie(double r, PatientType patientType){
 /**
  * Generates a random gamma variable with a given shape and scale parameter respectively
 */
-double Probabilities::getRandomGamma(double alpha, double theta) {
+double Probabilities::getRandomGamma(repast::Random* r, double alpha, double theta) {
     double x = 0;
     double u2;
     double w;
@@ -102,8 +102,8 @@ double Probabilities::getRandomGamma(double alpha, double theta) {
         double h1 = (0.865 + 0.064 / alpha) / s;
         double h2 = (0.4343 - 0.105 / s) / s;
         do {
-            double u = repast::Random::instance() -> nextDouble();
-            double u1 = repast::Random::instance() -> nextDouble();
+            double u = r->nextDouble();
+            double u1 = r->nextDouble();
             double u2 = u1 + h1 * u - h2;
             if (u2 < 0 or u2 > 1)
                 continue;
@@ -116,8 +116,8 @@ double Probabilities::getRandomGamma(double alpha, double theta) {
         double b = 1 + std::exp(-z) * alpha / z;
         bool condition = true;
         do {
-            double u = repast::Random::instance() -> nextDouble();
-            double v = repast::Random::instance() -> nextDouble();
+            double u = r->nextDouble();
+            double v = r->nextDouble();
             double p = b * u;
             if (p <= 1) {
                 x = z * std::pow(p, 1 / alpha);
@@ -137,7 +137,6 @@ double Probabilities::getGammaPDF(double x, double alpha, double theta){
     double pdf = std::pow(x, alpha-1)*std::exp(-x/theta);
     return pdf/(std::tgamma(alpha)*std::pow(theta, alpha));
 }
-
 
 /**
  * Is the citizen getting exposed? Reference: <pending>
@@ -160,15 +159,15 @@ namespace Probabilities{
     std::default_random_engine generator(seed);
 }
 
-double Probabilities::getRandomTimeToDischarge(){
+double Probabilities::getRandomTimeToDischarge(std::default_random_engine* g, repast::Random* r){
     std::gamma_distribution<double> dist_gamma(DISCHARGE_ALPHA, DISCHARGE_BETA);
-    return dist_gamma(generator);
+    return dist_gamma(*g);
 }
 
 /**
  * * Get random wake up time (unit: hours). Reference: <pending>
 */
-double Probabilities::getRandomWakeUpTime(Shift workShift){
+double Probabilities::getRandomWakeUpTime(repast::Random* rn, Shift workShift){
     double displacement;
     int init;
     int end;
@@ -194,13 +193,13 @@ double Probabilities::getRandomWakeUpTime(Shift workShift){
         sum += i;
     }
 
-    double r = repast::Random::instance()->nextDouble();
+    double r = rn->nextDouble();
     double acum = 0;
 
     for (int i = 0; i < size; i++){
         acum += travels[i];
         if (r <= acum/sum){
-            return repast::Random::instance()->nextDouble() + displacement + i;
+            return rn->nextDouble() + displacement + i;
         }
     }
     return -1;
@@ -209,7 +208,7 @@ double Probabilities::getRandomWakeUpTime(Shift workShift){
 /**
  * Get random return to home time (unit: hours). Reference: <pending>
 */
-double Probabilities::getRandomReturnToHomeTime(Shift workShift){
+double Probabilities::getRandomReturnToHomeTime(repast::Random* rnd, Shift workShift){
     double displacement;
     int init;
     int end;
@@ -235,13 +234,13 @@ double Probabilities::getRandomReturnToHomeTime(Shift workShift){
         sum += i;
     }
 
-    double r = repast::Random::instance()->nextDouble();
+    double r = rnd->nextDouble();
     double acum = 0;
 
     for (int i = 0; i < size; i++){
         acum += travels[i];
         if (r <= acum/sum){
-            return repast::Random::instance()->nextDouble() + displacement + i;
+            return rnd->nextDouble() + displacement + i;
         }
     }
     return -1;

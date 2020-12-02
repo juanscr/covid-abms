@@ -10,6 +10,10 @@ struct policy{
     Policy p;
     double start;
     double end;
+    int ageMin;
+    int ageMax;
+    double factor;
+    int c;
 };
 
 #endif
