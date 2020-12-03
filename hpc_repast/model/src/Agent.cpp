@@ -20,10 +20,23 @@ void RepastHPCAgent::setProcessHome(int newProcessHome){
 }
 
 void RepastHPCAgent::initAgent(repast::Random* r){
-	setAtHome(true);
-	setWorkShift(Probabilities::getRandomWorkShift(r->nextDouble()));
+    atHome = true;
+
+    // Select workshift
+	setWorkShift(Probabilities::getRandomWorkShift(r->nextDouble(), age));
+
+    // Get wake up time
     setWakeUpTime(Probabilities::getRandomWakeUpTime(r, workShift));
+
+    // Get return to home time
     setReturnToHomeTime(Probabilities::getRandomReturnToHomeTime(r, workShift));
+
+    // Get sleep time
+    Probabilities::getSleepingTime(r, age, wakeUpTime, returnToHomeTime, &sleepStart, &sleepEnd);
+
+    // if(id_.currentRank() == 0){
+    //     std::cout << id_ << " wu " << wakeUpTime << " rh " << returnToHomeTime << " ss " << sleepStart << " se " << sleepEnd << std::endl;
+    // }
 }
 
 void RepastHPCAgent::setAge(int newAge){
@@ -75,12 +88,20 @@ void RepastHPCAgent::setDiseaseStage(DiseaseStage newDiseaseStage){
     diseaseStage = newDiseaseStage;
 }
 
-void RepastHPCAgent::setWakeUpTime(double newWakeUpTime){
+void RepastHPCAgent::setWakeUpTime(int newWakeUpTime){
     wakeUpTime = newWakeUpTime;
 }
 
-void RepastHPCAgent::setReturnToHomeTime(double newReturnToHomeTime){
+void RepastHPCAgent::setReturnToHomeTime(int newReturnToHomeTime){
     returnToHomeTime = newReturnToHomeTime;
+}
+
+void RepastHPCAgent::setSleepStart(int newSleepStart){
+    sleepStart = newSleepStart;
+}
+
+void RepastHPCAgent::setSleepEnd(int newSleepEnd){
+    sleepEnd = newSleepEnd;
 }
 
 void RepastHPCAgent::setIncubationShift(double newIncubationShift){
@@ -153,25 +174,32 @@ void RepastHPCAgent::returnHome(){
     agentloc.push_back(ycoord);
 }
 
-void RepastHPCAgent::move(repast::Random* r, int rank, std::vector<Border*> p, double minX, double maxX, double minY, double maxY){
+void RepastHPCAgent::move(repast::Random* r, int rank, std::vector<Border*> p, int hour, double w){
     double newX, newY;
     double ax, ay;
     double distance;
     int core;
 
+    // Check if sleeping at homeplace
+    if(isSleeping(hour)){
+        return;
+    }
+
+    // Check if can move at workplace
+    if(isWorking(r, w)){
+        return;
+    }
+
+    // Agent can move at homemplace or workplace
     if(atHome){
-        ax = homeplace.at(0);
-        ay = homeplace.at(1);
         distance = averageWalk;
     }else{
-        ax = workplace.at(0);
-        ay = workplace.at(1);
         distance = MAX_MOVEMENT_IN_DESTINATION;
     }
 
     if (diseaseStage != DEAD && diseaseStage != IMMUNE){
         // Generate position
-        core = Geography::genDistancePoly(r, rank, id_, p, ax, ay, xcoord, ycoord, distance, &newX, &newY);
+        core = Geography::genDistancePoly(r, rank, id_, p, xcoord, ycoord, distance, &newX, &newY);
         cr = core;
 
         // Update coordinates
@@ -183,6 +211,41 @@ void RepastHPCAgent::move(repast::Random* r, int rank, std::vector<Border*> p, d
         }else{
             cr = processWork;
         }
+    }
+}
+
+bool RepastHPCAgent::isSleeping(int hour){
+    bool inInterval = false;
+
+    if(sleepStart <= sleepEnd){
+        if(sleepStart <= hour && hour <= sleepEnd){
+            inInterval = true;
+        }
+    }else{
+        if(sleepStart <= hour || hour <= sleepEnd){
+            inInterval = true;
+        }
+    }
+
+    if(inInterval){
+        if(!atHome){
+            atHome = true;
+        }
+        xcoord = homeplace.at(0);
+        ycoord = homeplace.at(1);
+        cr = processHome;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool RepastHPCAgent::isWorking(repast::Random* r, double w){
+    if(!atHome && r->nextDouble() > w){
+        cr = id_.currentRank();
+        return true;
+    }else{
+        return false;
     }
 }
 
@@ -262,7 +325,7 @@ AgentPackage::AgentPackage(){ }
 
 AgentPackage::AgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome,
 int _age, int _family,
-bool _atHome, Shift _workShift, double _wakeUpTime, double _returnToHomeTime,
+bool _atHome, Shift _workShift, int _wakeUpTime, int _returnToHomeTime, int _sleepStart, int _sleepEnd,
 DiseaseStage _diseaseStage, PatientType _patientType,
 double _incubationTime, double _incubationShift, double _ticksToInfected, bool _diseaseStageEnd, double _ticksToDiseaseEnd, int _infections,
 std::vector<double> _homeplace, std::vector<double> _workplace,

@@ -35,6 +35,7 @@ class RepastHPCModel{
 	int procsX;
 	int procsY;
 	int day;
+	int hour;
 	//Sit zopne path
 	double originX;
 	double originY;
@@ -45,6 +46,8 @@ class RepastHPCModel{
 	double distance;
 	// Disease stage attributes
 	double infectionRadius;
+	bool isolation;
+	double workMove;
 	double rand_exposed;
 
 	// Boost geography

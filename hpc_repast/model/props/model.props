@@ -14,3 +14,5 @@ geography.file = geoData_
 policy.path = ../data/policies/
 policy.file = policy0.json
 write.states = 0
+isolation = 1
+work.move = 0.25

@@ -6,7 +6,7 @@ void AgentPackageProvider::providePackage(RepastHPCAgent * agent, std::vector<Ag
     repast::AgentId id = agent->getId();
     AgentPackage package(id.id(), id.startingRank(), id.agentType(), id.currentRank(), agent->getProcessWork(), agent->getProcessHome(),
 	agent->getAge(), agent->getFamily(),
-	agent->getAtHome(), agent->getWorkShit(), agent->getWakeUpTime(), agent->getReturnToHomeTime(),
+	agent->getAtHome(), agent->getWorkShit(), agent->getWakeUpTime(), agent->getReturnToHomeTime(), agent->getSleepStart(), agent->getSleepEnd(),
 	agent->getDiseaseStage(), agent->getPatientType(), agent->getIncubationTime(), agent->getIncubatioShift(), agent->getTicksToInfected(), agent->getDiseaseStageEnd(), agent->getTicksToDiseaseEnd(), agent->getInfections(),
 	agent->getHomePlace(), agent->getWorkPlace(), agent->getXCoord(), agent->getYCoord(), agent->getAverageWalk(), agent->getHomeZone(), agent->getWorkZone());
     out.push_back(package);

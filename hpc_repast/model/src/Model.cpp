@@ -24,6 +24,8 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 
 	bufferSize = repast::strToDouble(props->getProperty("buffer.size"));
 	infectionRadius = repast::strToDouble(props->getProperty("infection.radius"));
+	isolation = (repast::strToInt(props->getProperty("isolation")) == 1);
+	workMove = repast::strToDouble(props->getProperty("work.move"));
 
 	// Number of processors
 	procsX = repast::strToInt(props->getProperty("procs.x"));
@@ -140,10 +142,11 @@ void RepastHPCModel::step(){
 	int crank = repast::RepastProcess::instance()->rank();
 	int ctick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	day = (int) TickConverter::ticksToDays(ctick) % 7;
+	hour = ctick % 24;
 
 	// Print current tick
 	if (crank == 0){
-		std::cout << " tick: " << ctick << std::endl;
+		std::cout << " day: " << ctick/24 << " hour: " << hour <<   std::endl;
 	}
 
 	// Agents in the current rank
@@ -198,8 +201,8 @@ void RepastHPCModel::agentsUpdate(std::vector<RepastHPCAgent*>& agents, int tick
 			agent->diseaseActions(r, tick, &g);
 		}
 		// Update positions
-		if(policyEnforcer.isAllowedToGoOut(agent, tick, rand(), day)){
-			agent->move(r, rank, border, originX, maxX, originY, maxY);
+		if(policyEnforcer.isAllowedToGoOut(isolation, agent, tick, rand(), day)){
+			agent->move(r, rank, border, hour, workMove);
 		}else{
 			agent->cr = agent->getId().currentRank();
 		}
@@ -285,7 +288,7 @@ void RepastHPCModel::agentsIncubation(std::vector<RepastHPCAgent*>& a){
 
 void RepastHPCModel::agentsMove(std::vector<RepastHPCAgent*>& a, int tick, int rank){
 	for(RepastHPCAgent* agent : a){
-		if (agent->getDiseaseStage() != IMMUNE && policyEnforcer.isAllowedToGoOut(agent, tick, rand(), day) && agent->getDiseaseStage()!=DEAD && (tick)%TickConverter::TICKS_PER_DAY <= agent->getWakeUpTime()  && agent->getWakeUpTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
+		if (agent->getDiseaseStage() != IMMUNE && policyEnforcer.isAllowedToGoOut(isolation, agent, tick, rand(), day) && agent->getDiseaseStage()!=DEAD &&  hour == agent->getWakeUpTime()){
 			try{
 				if (rank != agent->getProcessWork()){
 					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessWork());
@@ -295,7 +298,7 @@ void RepastHPCModel::agentsMove(std::vector<RepastHPCAgent*>& a, int tick, int r
 			}
 			agent->wakeUp();
 		}
-		else if (agent->getDiseaseStage() != IMMUNE && agent->getDiseaseStage()!=DEAD && (tick)%TickConverter::TICKS_PER_DAY <= agent->getReturnToHomeTime()  && agent->getReturnToHomeTime()  <=  (tick+1)%TickConverter::TICKS_PER_DAY){
+		else if (agent->getDiseaseStage() != IMMUNE && agent->getDiseaseStage()!=DEAD && hour == agent->getReturnToHomeTime()){
 			try{
 				if (rank != agent->getProcessHome()){
 					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessHome());

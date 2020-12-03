@@ -76,6 +76,6 @@ class PolicyEnforcer{
         void removePolicy();
 
         // Is the citizen allowed to go out?
-        bool isAllowedToGoOut(RepastHPCAgent* agent, int ctick, double, int day);
+        bool isAllowedToGoOut(bool isolation, RepastHPCAgent* agent, int ctick, double, int day);
 };
 #endif

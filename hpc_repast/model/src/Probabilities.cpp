@@ -175,14 +175,14 @@ double Probabilities::getRandomWakeUpTime(repast::Random* rn, Shift workShift){
     if (workShift == DAY){
         init = 4;
         end = 10;
-        displacement = 3;
+        displacement = 4;
     }else{
         init = 18;
         end = 22;
-        displacement = 17;
+        displacement = 18;
     }
 
-    int size = end - init;
+    int size = end - init + 1;
     int travels[size];
     for (int i = 0; i < size; i++){
         travels[i] = Probabilities::DAILY_TRAVELS[init + i];
@@ -199,7 +199,7 @@ double Probabilities::getRandomWakeUpTime(repast::Random* rn, Shift workShift){
     for (int i = 0; i < size; i++){
         acum += travels[i];
         if (r <= acum/sum){
-            return rn->nextDouble() + displacement + i;
+            return  displacement + i;
         }
     }
     return -1;
@@ -216,14 +216,14 @@ double Probabilities::getRandomReturnToHomeTime(repast::Random* rnd, Shift workS
     if (workShift == DAY){
         init = 13;
         end = 19;
-        displacement = 12;
+        displacement = 13;
     }else{
         init = 1;
         end = 6;
         displacement = 1;
     }
 
-    int size = end - init;
+    int size = end - init + 1;
     int travels[size];
     for (int i = 0; i < size; i++){
         travels[i] = Probabilities::DAILY_TRAVELS[init + i];
@@ -240,7 +240,7 @@ double Probabilities::getRandomReturnToHomeTime(repast::Random* rnd, Shift workS
     for (int i = 0; i < size; i++){
         acum += travels[i];
         if (r <= acum/sum){
-            return rnd->nextDouble() + displacement + i;
+            return displacement + i;
         }
     }
     return -1;
@@ -249,10 +249,64 @@ double Probabilities::getRandomReturnToHomeTime(repast::Random* rnd, Shift workS
 /**
  * Get random work shift. Reference: <pending>
 */
-Shift Probabilities::getRandomWorkShift(double r){
-    if (r < Probabilities::DAY_SHIFT_PROBABILITIES){
+Shift Probabilities::getRandomWorkShift(double r, int age){
+    if (r < Probabilities::DAY_SHIFT_PROBABILITIES || age <= WORKSHIFT_AGE_MIN || age >= WORKSHIFT_AGE_MAX){
         return DAY;
     }else{
         return NIGHT;
+    }
+}
+
+void Probabilities::getSleepingTime(repast::Random* r, int age, int wakeUp, int returnTo, int* sleepStart, int* sleepEnd){
+    int sleepMin;
+    int sleepMax;
+    if(age < WORKSHIFT_AGE_MIN || age >= WORKSHIFT_AGE_MAX){
+        sleepMin = SLEEP_T1;
+        sleepMax = SLEEP_T3;
+    }else{
+        sleepMin = SLEEP_T0;
+        sleepMax = SLEEP_T2;
+    }
+    // Available time at home
+    int length;
+    if(wakeUp < returnTo){
+        length = TickConverter::TICKS_PER_DAY + wakeUp - returnTo;
+    }else{
+        length = wakeUp - returnTo;
+    }
+    // Get sleep time
+    int sleepTime;
+    if(length < sleepMin){
+        sleepTime = length;
+    }else{
+        sleepTime = r->createUniIntGenerator(sleepMin, sleepMax).next();
+    }
+    // Lag
+    int mlag = std::min(2, abs(length - sleepTime));
+    int lag;
+    if(mlag <= 1){
+        lag = 1;
+    }else{
+        lag = r->createUniIntGenerator(1, mlag).next();
+    }
+    // Set start and end
+    if(wakeUp < returnTo){
+        *sleepStart = wakeUp - lag - sleepTime;
+        if(*sleepStart < 0){
+            *sleepStart += 24;
+        }
+        *sleepStart = max(*sleepStart, returnTo + 1);
+        *sleepEnd = wakeUp - lag;
+    }else{
+        *sleepStart = returnTo + lag;
+        *sleepEnd = min(wakeUp, returnTo + lag + sleepTime);
+    }
+
+    if(*sleepStart < 0 || *sleepStart > 23){
+        std::cout << "err ss" << std::endl;
+    }
+
+    if(*sleepEnd < 0 || *sleepEnd > 23){
+        std::cout << "err se" << std::endl;
     }
 }

@@ -56,7 +56,7 @@ namespace Geography{
     /**
      * Generate a random point given a centar, a radius and a polygon
     */
-   int genDistancePoly(repast::Random* r, int rank, repast::AgentId id, std::vector<Border*> p, double ax, double ay, double x, double y, double factor, double* newX, double* newY);
+   int genDistancePoly(repast::Random* r, int rank, repast::AgentId id, std::vector<Border*> p, double x, double y, double factor, double* newX, double* newY);
 
    /**
     * Check within to a set of multipolygons

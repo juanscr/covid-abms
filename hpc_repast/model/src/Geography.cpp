@@ -49,9 +49,8 @@ void Geography::genDistance(repast::Random* r, int rank,double minX, double maxX
 
 }
 
-int Geography::genDistancePoly(repast::Random* r, int rank, repast::AgentId id, std::vector<Border*> p, double ax, double ay, double x, double y, double factor, double* newX, double* newY){
+int Geography::genDistancePoly(repast::Random* r, int rank, repast::AgentId id, std::vector<Border*> p, double x, double y, double factor, double* newX, double* newY){
     // Point for new coordinate
-    // factor = factor * 1;
     point newPoint;
 
     // Random for latitude displacement

@@ -47,8 +47,10 @@ private:
     // Routine attributes
     bool atHome;
     Shift workShift;
-    double wakeUpTime;
-    double returnToHomeTime;
+    int wakeUpTime;
+    int returnToHomeTime;
+    int sleepStart;
+    int sleepEnd;
 
     // Health attributes
     DiseaseStage diseaseStage;
@@ -132,11 +134,17 @@ public:
     void setWorkShift(Shift new_workShift);
 
     // Times
-    double getWakeUpTime(){return wakeUpTime;}
-    void setWakeUpTime(double newWakeUpTime);
+    int getWakeUpTime(){return wakeUpTime;}
+    void setWakeUpTime(int newWakeUpTime);
 
-    double getReturnToHomeTime(){return returnToHomeTime;}
-    void setReturnToHomeTime(double newReturnToHomeTime);
+    int getReturnToHomeTime(){return returnToHomeTime;}
+    void setReturnToHomeTime(int newReturnToHomeTime);
+
+    int getSleepStart(){return sleepStart;}
+    void setSleepStart(int newSleepStart);
+
+    int getSleepEnd(){return sleepEnd;}
+    void setSleepEnd(int newSleepEnd);
 
     // Disease actions
     void initDisease(repast::Random* r, std::default_random_engine* g);
@@ -177,7 +185,11 @@ public:
     void returnHome();
 
     // Ask agent to move
-    void move(repast::Random* r, int rank, std::vector<Border*> p, double minX, double maxX, double minY, double maxY);
+    void move(repast::Random* r, int rank, std::vector<Border*> p, int hour, double w);
+
+    // Check if agent can move at homeplace
+    bool isSleeping(int hour);
+    bool isWorking(repast::Random* r, double w);
 
     // Ask if agent is active case
     bool isActiveCase();
@@ -199,8 +211,10 @@ public:
     int family;
     bool atHome;
     Shift workShift;
-    double wakeUpTime;
-    double returnToHomeTime;
+    int wakeUpTime;
+    int returnToHomeTime;
+    int sleepStart;
+    int sleepEnd;
     DiseaseStage diseaseStage;
     PatientType patientType;
     double incubationTime;
@@ -220,7 +234,7 @@ public:
     /* Constructors */
     AgentPackage(); // For serialization
     AgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome, int _age, int _family,
-    bool _atHome, Shift _workShift, double _wakeUpTime, double _returnToHomeTime,
+    bool _atHome, Shift _workShift, int _wakeUpTime, int _returnToHomeTime, int _sleepStart, int _sleepEnd,
     DiseaseStage _diseaseStage, PatientType patientType,
     double incubationTime, double incubationShift, double ticksToInfected, bool diseaseStageEnd, double ticksToDiseaseEnd, int infections,
     std::vector<double> _homeplace, std::vector<double> _workplace,
@@ -241,6 +255,8 @@ public:
         ar & workShift;
         ar & wakeUpTime;
         ar & returnToHomeTime;
+        ar & sleepStart;
+        ar & sleepEnd;
         ar & diseaseStage;
         ar & homeplace;
         ar & workplace;

@@ -79,6 +79,15 @@ namespace Probabilities{
     extern std::default_random_engine generator;
     extern unsigned int seed;
 
+    // Sleeping variables
+    const int SLEEP_T0 = 7;
+    const int SLEEP_T1 = 8;
+    const int SLEEP_T2 = 8;
+    const int SLEEP_T3 = 12;
+    const int SLEEP_LAG = 2;
+    const int WORKSHIFT_AGE_MIN = 14;
+    const int WORKSHIFT_AGE_MAX = 80;
+
     /**
     Methods
     */
@@ -117,7 +126,7 @@ namespace Probabilities{
     * */
 	bool isGettingExposed(double r, double incubationShift);
 
-    Shift getRandomWorkShift(double r);
+    Shift getRandomWorkShift(double r, int age);
 
     /**
      * Get random wake up time (unit: hours). Reference: <pending>
@@ -128,6 +137,11 @@ namespace Probabilities{
      * Get random return to home time (unit: hours). Reference: <pending>
     */
     double getRandomReturnToHomeTime(repast::Random* r, Shift workShift);
+
+    /**
+     * Get a sleep time
+    */
+    void getSleepingTime(repast::Random* r, int age, int wakeUp, int returnTo, int* sleepStart, int* sleepEnd);
 
     double getRandomGamma(repast::Random* r, double alpha, double theta);
     double getGammaPDF(double x, double alpha, double theta);

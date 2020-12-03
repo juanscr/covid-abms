@@ -20,14 +20,14 @@ void PolicyEnforcer::removePolicy(){
     addedPolicies.erase(addedPolicies.begin());
 }
 
-bool PolicyEnforcer::isAllowedToGoOut(RepastHPCAgent* agent, int ctick, double f, int day){
+bool PolicyEnforcer::isAllowedToGoOut(bool isolation, RepastHPCAgent* agent, int ctick, double f, int day){
     // Agent attribures
     repast::AgentId id_ = agent->getId();
     int age = agent->getAge();
     bool allowed = true;
 
     // Do not move agent if agent's patient type is several or critical
-    if(agent->getDiseaseStage() == INFECTED){
+    if(isolation && agent->getDiseaseStage() == INFECTED){
         bool isSevere = (agent->getPatientType() == SEVERE_SYMPTOMS || agent->getPatientType() == CRITICAL_SYMPTOMS);
         if(isSevere){
             return false;
@@ -39,26 +39,22 @@ bool PolicyEnforcer::isAllowedToGoOut(RepastHPCAgent* agent, int ctick, double f
 
     // Check if agent can move
     bool factor = (f <= cp.factor);
-    if(!factor){
-        return false;
-    }
 
     if(cp.p == NONE){
-        return true;
+        allowed = true;
     }else{
         bool cr = (age >= cp.ageMin && age <= cp.ageMax);
 
         if(cp.p == FULL_QUARANTINE && !cr){
-            return false;
+            allowed = false;
         }
 
         if (cp.p == ID_BASED_CURFEW){
             int c = cp.c;
             if(!cr){
-                return false;
+                allowed = false;
             }else{
                 int nid = id_.id() % 10;
-                // int day = (int) TickConverter::ticksToDays(ctick) % 7;
                 allowed = false;
                 if (std::find(curfews.at(c).at(day).begin(), curfews.at(c).at(day).end(), nid) != curfews.at(c).at(day).end()){
                     allowed = true;
@@ -66,5 +62,6 @@ bool PolicyEnforcer::isAllowedToGoOut(RepastHPCAgent* agent, int ctick, double f
             }
         }
     }
-    return allowed;
+
+    return (allowed && factor);
 }
