@@ -4,6 +4,48 @@ from shapely.geometry import Polygon, Point, MultiPolygon
 import shapely
 import random
 import numpy as np
+from shapely import wkt
+
+def update_mn(data, mun, zc, polygons):
+    mid  = list(mun.keys())
+    zpm = {}
+    for ml in mid:
+        zpm[ml] = []
+        
+        # Create polygon of municipality
+        mun[ml]['pol'] = wkt.loads(mun[ml]['wkt'])
+        
+        # Generate cummulative probabilities for stratums
+        mun[ml]['stratum'] = np.cumsum(mun[ml]['stratum']) / sum(mun[ml]['stratum'])
+    
+    for z in zc:
+        item =  data[z]
+        ml = str(item['loc'])
+        zpm[ml].append(z)
+        
+    # Determine proportion of areas
+    zpa = {}
+    for ml in mid:
+        zpa[ml] = []
+        
+        # Check if based on density
+        if mun[ml]['density'] == False:
+            # Number of sit zones
+            nz = len(zpm[ml])
+            # Probabilities of sit zones
+            pz = np.ones(nz)
+        else:
+            pz = []
+            for zone in zpm[ml]:
+                pz.append(polygons[zone].area)
+        
+        # Get cummulative probabilities
+        pz = np.cumsum(pz) / sum(pz)
+        
+        zpa[ml] = pz
+    
+    return mun, mid, zpm, zpa
+    
 
 def get_random_pip(poly):
     minx, miny, maxx, maxy = poly.bounds

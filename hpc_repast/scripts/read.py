@@ -8,10 +8,13 @@ from geopy.distance import geodesic as distance
 import os
 import errno
 
-def polygonData(filename):
+def polygonData(filename, filename2):
     
     with open(filename) as f:
         data = json.load(f)
+        
+    with open(filename2) as f:
+        mun = json.load(f)
 
     # Codes of borders and zones
     codes = list(data.keys())
@@ -29,7 +32,7 @@ def polygonData(filename):
     for z in zc:
         polygons[z] = polygons[z].intersection(border)
     
-    return data, zc, polygons
+    return mun, data, zc, polygons
 
 def eodWalks(eodw_name, xmin, ymin):
     # Read file
@@ -180,6 +183,8 @@ def exportAgents(nc, agents, filename):
             agents_data[i][j]["workY"] = agent["ywork"]
             # Disease Stage attribures
             agents_data[i][j]["diseaseStage"] = agent["diseaseStage"]
+            # Stratum
+            agents_data[i][j]['stratum'] = agent['stratum']
             
             j += 1
             

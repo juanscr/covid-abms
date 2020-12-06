@@ -20,11 +20,16 @@ void PolicyEnforcer::removePolicy(){
     addedPolicies.erase(addedPolicies.begin());
 }
 
-bool PolicyEnforcer::isAllowedToGoOut(bool isolation, RepastHPCAgent* agent, int ctick, double f, int day){
+bool PolicyEnforcer::isAllowedToGoOut(bool isolation, RepastHPCAgent* agent, int hour, double f, int day){
     // Agent attribures
     repast::AgentId id_ = agent->getId();
     int age = agent->getAge();
     bool allowed = true;
+
+    // Check if agent is inactive at homeplace
+    if(agent->isSleeping(hour)){
+        return false;
+    }
 
     // Do not move agent if agent's patient type is several or critical
     if(isolation && agent->getDiseaseStage() == INFECTED){

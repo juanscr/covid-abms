@@ -6,6 +6,71 @@ from multiprocessing import Pool
 from itertools import repeat
 from geography import get_random_pip
 
+def select_sit(families, mid, zpa, zpm):
+    homes = []
+    for family in families:
+        # Pick a random number
+        r = np.random.rand()
+        
+        # Get municipality
+        ml = family['mun']
+        
+        # Get SIT Zones
+        pz = zpa[ml]
+        
+        for i in range(len(pz)):
+            
+            if r <= pz[i]:
+                break
+        
+        # SIT Zone
+        homes.append({'mun': mid.index(ml),
+                      'zone': zpm[ml][i],
+                      'point': 0})
+        
+    return homes
+
+def get_stratum(families, agents, uniqueFamilies, mun, mid):
+    # Get number of homes
+    nHomes = len(uniqueFamilies)
+    
+    STRATUMS = [1, 2, 3, 4, 5, 6]
+    
+    # Size of families
+    fsize = [family['size'] for family in families]
+    fpop = np.cumsum(fsize) / sum(fsize)
+    
+    # Cummulative properties of locations
+    p = [mun[key]['population'] for key in mid]
+    pop = np.cumsum(p) / sum(p)
+    
+    # Select a municipality and stratum for families
+    ml = 0
+    for i in range(nHomes):
+        
+        if fpop[i] <= pop[ml]:
+            smun = mid[ml]
+        else:
+            ml += 1
+            smun = mid[ml]
+
+        # Select a location
+        families[i]['mun'] = smun
+        
+        # Assign a stratum
+        stratum = random.choices(STRATUMS, cum_weights=mun[smun]['stratum'])
+        families[i]['stratum'] = stratum[0]
+    
+    # Update agents municipality and stratum
+    for family in families:
+        members = family['members']
+        
+        for member in members:
+            agents[member]['mun'] = family['mun']
+            agents[member]['stratum'] = family['stratum']
+
+    return nHomes, families, agents
+
 def get_walks(nc, zpp, eodw_cols, walks, averageWalk, agents):
     for core in range(nc):
         for key in zpp[core].keys():
@@ -28,9 +93,13 @@ def agents_init(nag):
     for i in range(nag):
         agents.append({"name": i,
                        "age": ages[i],
-                       "family": []
+                       "family": [],
+                       "stratum": -1
                        }
                       )
+        
+    random.shuffle(agents)
+    
     return agents
 
 def agents_families(agents, nag):
@@ -107,7 +176,7 @@ def agents_families(agents, nag):
             agents[member]["family"] = family["members"]
             agents[member]["familyID"] = family["id"]
 
-    return agents, uniqueFamilies
+    return agents, uniqueFamilies, families
 
 def agents_spaces(nc, zc, ids, zpp):
     # Areas per process
@@ -311,8 +380,14 @@ def agent_workplace(agent, eod_rows, eod_rc, zc, zd, zpp):
 
             return agent
     
-    fcore = agent["core"]
-    pid = agent["hZone"]
+    # Select a random core if zone not in EOD
+    fcore = random.randint(0, len(zpp)-1)   
+    #fcore = agent["core"]
+    
+    # pid = agent["hZone"]
+    pid = random.choice(list(zpp[fcore].keys()))
+    
+    # Get a random point
     point = get_random_pip(zpp[fcore][pid]["polygon"])
     
     agent["wCore"] = fcore

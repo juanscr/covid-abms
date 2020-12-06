@@ -149,7 +149,7 @@ bool Probabilities::isGettingExposed(double r, double incubationShift){
     double days = TickConverter::ticksToDays(incubationShift);
     double p = getGammaPDF(days - INFECTION_MIN, INFECTION_ALPHA, INFECTION_BETA);
 
-    return r<p;
+    return r < p;
 }
 
 // Set seed

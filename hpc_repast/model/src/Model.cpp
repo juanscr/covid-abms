@@ -154,7 +154,7 @@ void RepastHPCModel::step(){
 	// Number of agents
 	int n = context.size();
 	if (n > 0){
-		context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, n, agents);
+		context.selectAgents(repast::SharedContext<RepastHPCAgent>::LOCAL, agents);
 	}
 
 	// Write agent states
@@ -220,11 +220,13 @@ void RepastHPCModel::agentsSelect(std::vector<RepastHPCAgent*> agents, std::vect
 }
 
 bool positionCompare(RepastHPCAgent* a, RepastHPCAgent* b){
+	// First criteria
     double x1 = a->getXCoord();
-	double y1 = a->getXCoord();
+	double y1 = a->getYCoord();
+	// Second criteria
 	double x2 = b->getXCoord();
-	double y2 = b->getXCoord();
-	if (a != b){
+	double y2 = b->getYCoord();
+	if (x1 != x2){
 		return x1 < x2;
 	}
 	return y1 < y2;
@@ -288,7 +290,7 @@ void RepastHPCModel::agentsIncubation(std::vector<RepastHPCAgent*>& a){
 
 void RepastHPCModel::agentsMove(std::vector<RepastHPCAgent*>& a, int tick, int rank){
 	for(RepastHPCAgent* agent : a){
-		if (agent->getDiseaseStage() != IMMUNE && policyEnforcer.isAllowedToGoOut(isolation, agent, tick, rand(), day) && agent->getDiseaseStage()!=DEAD &&  hour == agent->getWakeUpTime()){
+		if (agent->getDiseaseStage() != IMMUNE && policyEnforcer.isAllowedToGoOut(isolation, agent, hour, rand(), day) && agent->getDiseaseStage()!=DEAD &&  hour == agent->getWakeUpTime()){
 			try{
 				if (rank != agent->getProcessWork()){
 					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessWork());
