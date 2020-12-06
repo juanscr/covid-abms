@@ -37,7 +37,7 @@ namespace Reader{
     DiseaseStage checkDiseaseStage(int d);
 
     // Read policies
-    void getPolicies(std::string path, std::string filename, int stopAt, std::vector<policy>& policies);
+    void getPolicies(int crank, std::string path, std::string filename, int stopAt, std::vector<policy>& policies);
 
     // Check policy type
     Policy checkPolicyType(int d);

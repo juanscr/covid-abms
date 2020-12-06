@@ -51,7 +51,7 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	// Read policy files
 	policyPath = props->getProperty("policy.path");
 	policyFile = props->getProperty("policy.file");
-	Reader::getPolicies(policyPath, policyFile, stopAt, policies);
+	Reader::getPolicies(crank, policyPath, policyFile, stopAt, policies);
 
 	// Check if agents states must be recorded
 	write = props->getProperty("write.states") == "1";

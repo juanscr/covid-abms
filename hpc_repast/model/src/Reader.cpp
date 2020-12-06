@@ -15,6 +15,7 @@ void Reader::getBounds(std::string path, std::string filename, double* xmin, dou
     *extY = data.get<double>("yext");
 }
 
+// Read borders of polygons
 void Reader::getBorders(std::string path, std::string filename, int rank, std::vector<Zone*>& zones, std::vector<Border*>& border){
     std::string filepath = path + filename + std::to_string(rank) + ".json";
     std::vector<int> cores;
@@ -88,6 +89,7 @@ void Reader::getBorders(std::string path, std::string filename, int rank, std::v
      }
 }
 
+// Read agents
 void Reader::getAgents(std::string path, std::string filename, int rank, int* n, std::vector<RepastHPCAgent*>& agents){
     std::string filepath = path + filename + std::to_string(rank) + ".json";
 
@@ -161,7 +163,7 @@ DiseaseStage Reader::checkDiseaseStage(int d){
     }
 }
 
-void Reader::getPolicies(std::string path, std::string filename, int stopAt, std::vector<policy>& policies){
+void Reader::getPolicies(int crank, std::string path, std::string filename, int stopAt, std::vector<policy>& policies){
     std::string filepath = path + filename;
 
     // Read policies data
@@ -203,12 +205,25 @@ void Reader::getPolicies(std::string path, std::string filename, int stopAt, std
             pol.ageMax = data.get<int>(key + ".ageMax");
         }
 
-        // Curfew
+        // Add curfews if apply
         if (d == 2){
-            pol.c = data.get<int>(key + ".curfew");
+            // Set curfew
+            for(pt::ptree::value_type &row : data.get_child(key + ".curfew")){
+
+                // IDs of day
+                std::vector<int> curfDay;
+
+                for(pt::ptree::value_type &cell : row.second){
+                    curfDay.push_back(cell.second.get_value<int>());
+                }
+
+                // Add day to curfew vector
+                pol.curfew.push_back(curfDay);
+
+            }
         }
 
-        // Factor of agents that can move
+        // Factor of allowed agents that decide to move
         pol.factor = data.get<double>(key + ".factor");
 
         // Append to vector of policies

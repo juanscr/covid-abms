@@ -55,13 +55,12 @@ bool PolicyEnforcer::isAllowedToGoOut(bool isolation, RepastHPCAgent* agent, int
         }
 
         if (cp.p == ID_BASED_CURFEW){
-            int c = cp.c;
             if(!cr){
                 allowed = false;
             }else{
                 int nid = id_.id() % 10;
                 allowed = false;
-                if (std::find(curfews.at(c).at(day).begin(), curfews.at(c).at(day).end(), nid) != curfews.at(c).at(day).end()){
+                if (std::find(cp.curfew.at(day).begin(), cp.curfew.at(day).end(), nid) != cp.curfew.at(day).end()){
                     allowed = true;
                 }
             }

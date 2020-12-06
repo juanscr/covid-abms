@@ -13,7 +13,7 @@ struct policy{
     int ageMin;
     int ageMax;
     double factor;
-    int c;
+    std::vector<std::vector<int>> curfew;
 };
 
 #endif
