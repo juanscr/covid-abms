@@ -11,13 +11,13 @@
 #include "Agent.h"
 
 class PolicyEnforcer{
-    private:
+    public:
         // Current policies
         std::vector<policy> currentPolicies;
+
         // Added policies to schedule
         std::vector<policy> addedPolicies;
 
-    public:
         // Create Policy Enforcer
         PolicyEnforcer();
 
@@ -31,6 +31,12 @@ class PolicyEnforcer{
         void removePolicy();
 
         // Is the citizen allowed to go out?
-        bool isAllowedToGoOut(bool isolation, RepastHPCAgent* agent, int hour, double, int day);
+        bool isAllowedToGoOut(repast::Random* r, bool isolation, RepastHPCAgent* agent, int hour, double, int day);
+
+        // Policy compliance by socioeconomic stratum
+        compliance cmp;
+
+        // Mask usage by socioeconomic stratum
+        maskUsage msu;
 };
 #endif

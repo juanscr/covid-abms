@@ -52,6 +52,8 @@ private:
     int returnToHomeTime;
     int sleepStart;
     int sleepEnd;
+    bool usesMask = false;
+    bool complies = true;
 
     // Health attributes
     DiseaseStage diseaseStage;
@@ -154,6 +156,12 @@ public:
     int getSleepEnd(){return sleepEnd;}
     void setSleepEnd(int newSleepEnd);
 
+    bool getUsesMask(){return usesMask;}
+    void setUsesMask(bool newUsesMask);
+
+    bool getComplies(){return complies;}
+    void setComplies(bool newComplies);
+
     // Disease actions
     void initDisease(repast::Random* r, std::default_random_engine* g);
     void setInfected(repast::Random* r, std::default_random_engine* g);
@@ -224,6 +232,8 @@ public:
     int returnToHomeTime;
     int sleepStart;
     int sleepEnd;
+    bool usesMask;
+    bool complies;
     DiseaseStage diseaseStage;
     PatientType patientType;
     double incubationTime;
@@ -243,7 +253,7 @@ public:
     /* Constructors */
     AgentPackage(); // For serialization
     AgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome, int _age, int _family, int _stratum,
-    bool _atHome, Shift _workShift, int _wakeUpTime, int _returnToHomeTime, int _sleepStart, int _sleepEnd,
+    bool _atHome, Shift _workShift, int _wakeUpTime, int _returnToHomeTime, int _sleepStart, int _sleepEnd, bool _usesMask, bool _complies,
     DiseaseStage _diseaseStage, PatientType patientType,
     double incubationTime, double incubationShift, double ticksToInfected, bool diseaseStageEnd, double ticksToDiseaseEnd, int infections,
     std::vector<double> _homeplace, std::vector<double> _workplace,
@@ -267,6 +277,8 @@ public:
         ar & returnToHomeTime;
         ar & sleepStart;
         ar & sleepEnd;
+        ar & usesMask;
+        ar & complies;
         ar & diseaseStage;
         ar & homeplace;
         ar & workplace;

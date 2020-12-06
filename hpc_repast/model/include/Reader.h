@@ -44,6 +44,9 @@ namespace Reader{
 
     // Check if file exists
     bool fileExists(std::string& fileName);
+
+    // Read policy parameter
+    void getPolicyInfo(std::string path, std::string filename, compliance& cmp, maskUsage& msu);
 }
 
 #endif

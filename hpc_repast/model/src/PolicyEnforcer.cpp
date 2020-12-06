@@ -20,16 +20,14 @@ void PolicyEnforcer::removePolicy(){
     addedPolicies.erase(addedPolicies.begin());
 }
 
-bool PolicyEnforcer::isAllowedToGoOut(bool isolation, RepastHPCAgent* agent, int hour, double f, int day){
+bool PolicyEnforcer::isAllowedToGoOut(repast::Random* r, bool isolation, RepastHPCAgent* agent, int hour, double f, int day){
     // Agent attribures
     repast::AgentId id_ = agent->getId();
     int age = agent->getAge();
     bool allowed = true;
 
-    // Check if agent is inactive at homeplace
-    if(agent->isSleeping(hour)){
-        return false;
-    }
+    // Get current policy
+    policy cp = currentPolicies.at(0);
 
     // Do not move agent if agent's patient type is several or critical
     if(isolation && agent->getDiseaseStage() == INFECTED){
@@ -39,13 +37,15 @@ bool PolicyEnforcer::isAllowedToGoOut(bool isolation, RepastHPCAgent* agent, int
         }
     }
 
-    // Get current policy
-    policy cp = currentPolicies.at(0);
+    // Check if agent is inactive at homeplace
+    if(agent->isSleeping(hour)){
+        return false;
+    }
 
     // Check if agent can move
     bool factor = (f <= cp.factor);
 
-    if(cp.p == NONE){
+    if(cp.p == NONE || !agent->getComplies()){
         allowed = true;
     }else{
         bool cr = (age >= cp.ageMin && age <= cp.ageMax);

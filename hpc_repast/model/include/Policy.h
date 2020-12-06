@@ -14,6 +14,19 @@ struct policy{
     int ageMax;
     double factor;
     std::vector<std::vector<int>> curfew;
+    bool mask;
+};
+
+// Struct for compliance
+struct compliance{
+    std::vector<double> values;
+    std::vector<double> std;
+};
+
+// Struct for compliance
+struct maskUsage{
+    std::vector<double> values;
+    std::vector<double> std;
 };
 
 #endif

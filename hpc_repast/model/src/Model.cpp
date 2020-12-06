@@ -51,7 +51,12 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	// Read policy files
 	policyPath = props->getProperty("policy.path");
 	policyFile = props->getProperty("policy.file");
+	policyInfo = props->getProperty("policy.info");
 	Reader::getPolicies(crank, policyPath, policyFile, stopAt, policies);
+	Reader::getPolicyInfo(policyPath, policyInfo, policyEnforcer.cmp, policyEnforcer.msu);
+
+	// Read mask factor
+	maskFactor = repast::strToDouble(props->getProperty("mask.factor"));
 
 	// Check if agents states must be recorded
 	write = props->getProperty("write.states") == "1";
@@ -120,6 +125,10 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 	for (RepastHPCAgent* agent : agents0){
 		// Set the disease stage
 		agent -> initAgent(r);
+
+		// Set initial compliance
+		agent->setComplies(true);
+		agent->setUsesMask(false);
 
 		// Setup initial disease stage
 		agent -> initDisease(r, &g);
@@ -201,7 +210,7 @@ void RepastHPCModel::agentsUpdate(std::vector<RepastHPCAgent*>& agents, int tick
 			agent->diseaseActions(r, tick, &g);
 		}
 		// Update positions
-		if(policyEnforcer.isAllowedToGoOut(isolation, agent, tick, rand(), day)){
+		if(policyEnforcer.isAllowedToGoOut(r, isolation, agent, tick, rand(), day)){
 			agent->move(r, rank, border, hour, workMove);
 		}else{
 			agent->cr = agent->getId().currentRank();
@@ -256,7 +265,7 @@ void RepastHPCModel::agentsInfect(std::vector<RepastHPCAgent*>& S, std::vector<R
 					// Check if susceptible can be infected
 					if (distance <= infectionRadius && susceptible->getDiseaseStage() == SUSCEPTIBLE){
 						rand_exposed = rand();
-						if(Probabilities::isGettingExposed(rand_exposed, infected->getIncubatioShift())){
+						if(Probabilities::isGettingExposed(rand_exposed, infected->getIncubatioShift(), infected->getUsesMask(), susceptible->getUsesMask(), maskFactor)){
 							infected->setInfections(1);
 							susceptible->setExposed(r);
 						}
@@ -289,32 +298,47 @@ void RepastHPCModel::agentsIncubation(std::vector<RepastHPCAgent*>& a){
 }
 
 void RepastHPCModel::agentsMove(std::vector<RepastHPCAgent*>& a, int tick, int rank){
+	bool c = true;
+	bool m = false;
+	int sc;
+	double mu, sigma;
 	for(RepastHPCAgent* agent : a){
-		if (agent->getDiseaseStage() != IMMUNE && policyEnforcer.isAllowedToGoOut(isolation, agent, hour, rand(), day) && agent->getDiseaseStage()!=DEAD &&  hour == agent->getWakeUpTime()){
-			try{
-				if (rank != agent->getProcessWork()){
-					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessWork());
+		if(agent->getDiseaseStage() != IMMUNE && agent->getDiseaseStage() != DEAD){
+			// If agent wakes up
+			if(hour == agent->getWakeUpTime()){
+				sc = agent->getStratum() - 1;
+				if (policyEnforcer.currentPolicies.at(0).p != NONE){
+					// Check if agent breaks the policy
+					mu = policyEnforcer.cmp.values.at(sc);
+					sigma = mu * policyEnforcer.cmp.std.at(sc);
+
+					// Update compliance
+					c = Probabilities::getComply(r, mu, sigma);
 				}
-			} catch(const std::exception& e){
-				std::cerr << e.what() << '\n';
-			}
-			agent->wakeUp();
-		}
-		else if (agent->getDiseaseStage() != IMMUNE && agent->getDiseaseStage()!=DEAD && hour == agent->getReturnToHomeTime()){
-			try{
+
+				// Update compliance of policy
+				agent->setComplies(c);
+
+				// Update compliance of mask usage
+				if(policyEnforcer.currentPolicies.at(0).mask){
+					mu = policyEnforcer.msu.values.at(sc);
+					sigma = policyEnforcer.msu.values.at(sc);
+					m = Probabilities::getUsage(r, mu, sigma);
+					agent->setUsesMask(m);
+				}
+
+				if(policyEnforcer.isAllowedToGoOut(r, isolation, agent, hour, rand(), day)){
+					if (rank != agent->getProcessWork()){
+						repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessWork());
+					}
+					agent->wakeUp();
+				}
+			} else if (hour == agent->getReturnToHomeTime()){
 				if (rank != agent->getProcessHome()){
 					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessHome());
 				}
-			} catch(const std::exception& e) {
-				std::cerr << e.what() << '\n';
-			}
-			agent->returnHome();
-		} else if (agent->getDiseaseStage() != IMMUNE && agent->getDiseaseStage()!=DEAD && agent->cr != rank){
-			try{
+			} else if (agent->cr != rank){
 				repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->cr);
-			}
-			catch(const std::exception& e) {
-				std::cerr << e.what() << '\n';
 			}
 		}
 	}

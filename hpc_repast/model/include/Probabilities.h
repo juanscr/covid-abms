@@ -88,6 +88,10 @@ namespace Probabilities{
     const int WORKSHIFT_AGE_MIN = 14;
     const int WORKSHIFT_AGE_MAX = 80;
 
+    // Mask protection factors
+    const double MAX_MASK_FACTOR = 1;
+    const double MIN_MASK_FACTOR = 0;
+
     /**
     Methods
     */
@@ -124,7 +128,7 @@ namespace Probabilities{
     /**
     * Is the citizen getting exposed? Reference: <pending>
     * */
-	bool isGettingExposed(double r, double incubationShift);
+	bool isGettingExposed(double r, double incubationShift, bool infMask, bool susMask, double maskF);
 
     Shift getRandomWorkShift(double r, int age);
 
@@ -146,6 +150,16 @@ namespace Probabilities{
     double getRandomGamma(repast::Random* r, double alpha, double theta);
     double getGammaPDF(double x, double alpha, double theta);
     double getRandomTimeToDischarge(std::default_random_engine* g, repast::Random* r);
+
+    /**
+     * Get random for policy compliance
+    */
+    bool getComply(repast::Random* r, double mu, double sigma);
+
+    /**
+     * Get random for mask usage
+    */
+    bool getUsage(repast::Random* r, double mu, double sigma);
 
 };
 

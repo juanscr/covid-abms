@@ -226,9 +226,52 @@ void Reader::getPolicies(int crank, std::string path, std::string filename, int 
         // Factor of allowed agents that decide to move
         pol.factor = data.get<double>(key + ".factor");
 
+        // Is obligatory to use a mask?
+        pol.mask  = (data.get<int>(key + ".mask") == 1);
+
         // Append to vector of policies
         policies.push_back(pol);
     }
+}
+
+void Reader::getPolicyInfo(std::string path, std::string filename, compliance& cmp, maskUsage& msu){
+    std::string filepath = path + filename;
+
+    // Read policy info
+    pt::ptree data;
+    pt::read_json(filepath, data);
+
+    // Values of policy compliance
+    std::vector<double> pc;
+    for(pt::ptree::value_type & value : data.get_child("compliance.values")){
+        pc.push_back(std::stoi(value.second.data()));
+    }
+
+    // Deviations of policy compliance
+    std::vector<double> ps;
+    for(pt::ptree::value_type & value : data.get_child("compliance.std")){
+        ps.push_back(std::stoi(value.second.data()));
+    }
+
+    // Set values for policy compliance
+    cmp.values = pc;
+    cmp.std = ps;
+
+    // Values of mask usage
+    std::vector<double> mc;
+    for(pt::ptree::value_type & value : data.get_child("maskUsage.values")){
+        mc.push_back(std::stoi(value.second.data()));
+    }
+
+    // Deviations of mask usage
+    std::vector<double> ms;
+    for(pt::ptree::value_type & value : data.get_child("maskUsage.std")){
+        ms.push_back(std::stoi(value.second.data()));
+    }
+
+    // Set value for mask usage
+    msu.values = mc;
+    msu.std = ms;
 }
 
 Policy Reader::checkPolicyType(int d){

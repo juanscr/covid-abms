@@ -33,10 +33,6 @@ void RepastHPCAgent::initAgent(repast::Random* r){
 
     // Get sleep time
     Probabilities::getSleepingTime(r, age, wakeUpTime, returnToHomeTime, &sleepStart, &sleepEnd);
-
-    // if(id_.currentRank() == 0){
-    //     std::cout << id_ << " wu " << wakeUpTime << " rh " << returnToHomeTime << " ss " << sleepStart << " se " << sleepEnd << std::endl;
-    // }
 }
 
 void RepastHPCAgent::setAge(int newAge){
@@ -106,6 +102,14 @@ void RepastHPCAgent::setSleepStart(int newSleepStart){
 
 void RepastHPCAgent::setSleepEnd(int newSleepEnd){
     sleepEnd = newSleepEnd;
+}
+
+void RepastHPCAgent::setUsesMask(bool newUsesMask){
+    usesMask = newUsesMask;
+}
+
+void RepastHPCAgent::setComplies(bool newComplies){
+    complies = newComplies;
 }
 
 void RepastHPCAgent::setIncubationShift(double newIncubationShift){
@@ -249,6 +253,7 @@ bool RepastHPCAgent::isSleeping(int hour){
     }
 
     if(inInterval){
+        usesMask = false;
         if(!atHome){
             atHome = true;
         }
@@ -346,13 +351,13 @@ AgentPackage::AgentPackage(){ }
 
 AgentPackage::AgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome,
 int _age, int _family, int _stratum,
-bool _atHome, Shift _workShift, int _wakeUpTime, int _returnToHomeTime, int _sleepStart, int _sleepEnd,
+bool _atHome, Shift _workShift, int _wakeUpTime, int _returnToHomeTime, int _sleepStart, int _sleepEnd, bool _usesMask, bool _complies,
 DiseaseStage _diseaseStage, PatientType _patientType,
 double _incubationTime, double _incubationShift, double _ticksToInfected, bool _diseaseStageEnd, double _ticksToDiseaseEnd, int _infections,
 std::vector<double> _homeplace, std::vector<double> _workplace,
 double _xcoord, double _ycoord, double _averageWalk, std::string _homeZone, std::string _workZone):
 id(_id), rank(_rank), type(_type), currentRank(_currentRank), processWork(_processWork), processHome(_processHome),
 age(_age), family(_family), stratum(_stratum), atHome(_atHome),
-workShift(_workShift), wakeUpTime(_wakeUpTime), returnToHomeTime(_returnToHomeTime),
+workShift(_workShift), wakeUpTime(_wakeUpTime), returnToHomeTime(_returnToHomeTime), sleepStart(_sleepStart), sleepEnd(_sleepEnd), usesMask(_usesMask), complies(_complies),
 diseaseStage(_diseaseStage), patientType(_patientType), incubationTime(_incubationTime), incubationShift(_incubationShift), ticksToInfected(_ticksToInfected), diseaseStageEnd(_diseaseStageEnd), ticksToDiseaseEnd(_ticksToDiseaseEnd), infections(_infections),
 homeplace(_homeplace), workplace(_workplace), xcoord(_xcoord), ycoord(_ycoord), averageWalk(_averageWalk), homeZone(_homeZone), workZone(_workZone) { }

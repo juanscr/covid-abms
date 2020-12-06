@@ -141,13 +141,24 @@ double Probabilities::getGammaPDF(double x, double alpha, double theta){
 /**
  * Is the citizen getting exposed? Reference: <pending>
 */
-bool Probabilities::isGettingExposed(double r, double incubationShift){
+bool Probabilities::isGettingExposed(double r, double incubationShift, bool infMask, bool susMask, double maskF){
     if (incubationShift < INFECTION_MIN){
         return false;
     }
 
     double days = TickConverter::ticksToDays(incubationShift);
     double p = getGammaPDF(days - INFECTION_MIN, INFECTION_ALPHA, INFECTION_BETA);
+
+    // Get mask factor
+    double maskFactor = maskF;
+
+    if(infMask && susMask){
+        maskFactor = MAX_MASK_FACTOR;
+    }else if(!infMask && !susMask){
+        maskFactor = MIN_MASK_FACTOR;
+    }
+
+    p *= (1 - maskFactor);
 
     return r < p;
 }
@@ -309,4 +320,26 @@ void Probabilities::getSleepingTime(repast::Random* r, int age, int wakeUp, int 
     if(*sleepEnd < 0 || *sleepEnd > 23){
         std::cout << "err se" << std::endl;
     }
+}
+
+bool Probabilities::getComply(repast::Random* r, double mu, double sigma){
+    // Create distribution
+    repast::NormalGenerator normalDistribution  = r->createNormalGenerator(mu, sigma/3.0);
+    // Get compliance
+    double p = normalDistribution.next();
+    // Random number of comparison
+    double c = r->nextDouble();
+    // Complies
+    return c < p;
+}
+
+bool Probabilities::getUsage(repast::Random* r, double mu, double sigma){
+    // Create distribution
+    repast::NormalGenerator normalDistribution  = r->createNormalGenerator(mu, sigma/3.0);
+    // Get compliance
+    double p = normalDistribution.next();
+    // Random number of comparison
+    double c = r->nextDouble();
+    // Complies mask usage
+    return c < p;
 }

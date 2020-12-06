@@ -1,7 +1,7 @@
 #Properties file
 stop.at = 2
-procs.x = 6
-procs.y = 2
+procs.x = 1
+procs.y = 12
 infection.radius = 1
 random.seed = 1
 buffer.size = 0
@@ -13,6 +13,8 @@ bounds.file = bounds.json
 geography.file = geoData_
 policy.path = ../data/policies/
 policy.file = policy0.json
+policy.info = policyInfo.json
 write.states = 0
 isolation = 1
-work.move = 0.25
+work.move = 0.33
+mask.factor = 0.5

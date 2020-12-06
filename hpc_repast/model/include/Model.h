@@ -49,6 +49,7 @@ class RepastHPCModel{
 	bool isolation;
 	double workMove;
 	double rand_exposed;
+	double maskFactor;
 
 	// Boost geography
 	typedef boost::geometry::model::d2::point_xy<double> point;
@@ -74,6 +75,7 @@ class RepastHPCModel{
 	PolicyEnforcer policyEnforcer;
 	std::string policyPath;
 	std::string policyFile;
+	std::string policyInfo;
 	std::vector<policy> policies;
 
 	// Packages
