@@ -123,6 +123,9 @@ public:
 
     double getDistance(double x, double y);
 
+    // Check if the new position is in a valid core
+    void isValidCore();
+
     bool getAtHome(){return atHome;}
     void setAtHome(bool new_atHome);
 

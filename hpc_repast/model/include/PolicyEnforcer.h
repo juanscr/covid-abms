@@ -18,8 +18,6 @@ class PolicyEnforcer{
         std::vector<policy> addedPolicies;
 
     public:
-        // Variable to add policy
-
         // Create Policy Enforcer
         PolicyEnforcer();
 

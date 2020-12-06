@@ -206,6 +206,9 @@ void RepastHPCAgent::move(repast::Random* r, int rank, std::vector<Border*> p, i
         core = Geography::genDistancePoly(r, rank, id_, p, xcoord, ycoord, distance, &newX, &newY);
         cr = core;
 
+        // Check if the core is valid
+        isValidCore();
+
         // Update coordinates
         xcoord = newX;
         ycoord = newY;
@@ -214,6 +217,20 @@ void RepastHPCAgent::move(repast::Random* r, int rank, std::vector<Border*> p, i
             cr = processHome;
         }else{
             cr = processWork;
+        }
+    }
+}
+
+void RepastHPCAgent::isValidCore(){
+    if(cr == -1){
+        if(atHome){
+            cr = processHome;
+            xcoord = homeplace.at(0);
+            ycoord = homeplace.at(1);
+        }else{
+            cr = processWork;
+            xcoord = workplace.at(0);
+            ycoord = workplace.at(1);
         }
     }
 }

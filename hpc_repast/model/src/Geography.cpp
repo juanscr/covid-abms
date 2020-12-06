@@ -98,6 +98,9 @@ int Geography::genDistancePoly(repast::Random* r, int rank, repast::AgentId id, 
         cont++;
         if (cont > 10){
             std::cout << "r " << rank << " id " << id << " x " << x << " y " << y << " f " << factor << std::endl;
+        }else if (cont >= 20){
+            std::cout << "failed at: r " << rank << " id " << id << " x " << x << " y " << y << " f " << factor << std::endl;
+            return -1;
         }
         factor = factor * 0.5;
         cr = checkWithin(newPoint, p, &core);
