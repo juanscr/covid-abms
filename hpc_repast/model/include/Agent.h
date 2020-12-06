@@ -29,6 +29,7 @@ private:
     int processHome;
 	int age;
     int family;
+    int stratum;
 
     // Tick converter
     double currentTick;
@@ -102,6 +103,10 @@ public:
     // Family
     int getFamily(){return family;}
     void setFamily(int newFamily);
+
+    // Stratum
+    int getStratum(){return stratum;}
+    void setStratum(int newStratum);
 
     // Position
     double getXCoord(){return xcoord;}
@@ -209,6 +214,7 @@ public:
     int processHome;
     int age;
     int family;
+    int stratum;
     bool atHome;
     Shift workShift;
     int wakeUpTime;
@@ -233,7 +239,7 @@ public:
 
     /* Constructors */
     AgentPackage(); // For serialization
-    AgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome, int _age, int _family,
+    AgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome, int _age, int _family, int _stratum,
     bool _atHome, Shift _workShift, int _wakeUpTime, int _returnToHomeTime, int _sleepStart, int _sleepEnd,
     DiseaseStage _diseaseStage, PatientType patientType,
     double incubationTime, double incubationShift, double ticksToInfected, bool diseaseStageEnd, double ticksToDiseaseEnd, int infections,
@@ -251,6 +257,7 @@ public:
         ar & processHome,
         ar & age;
         ar & family;
+        ar & stratum;
         ar & atHome;
         ar & workShift;
         ar & wakeUpTime;

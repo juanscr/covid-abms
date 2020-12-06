@@ -47,6 +47,10 @@ void RepastHPCAgent::setFamily(int newFamily){
     family = newFamily;
 }
 
+void RepastHPCAgent::setStratum(int newStratum){
+    stratum =  newStratum;
+}
+
 void RepastHPCAgent::setXCoord(double newXCoord){
     xcoord = newXCoord;
 }
@@ -324,14 +328,14 @@ void RepastHPCAgent::setInfections(int newInfections){
 AgentPackage::AgentPackage(){ }
 
 AgentPackage::AgentPackage(int _id, int _rank, int _type, int _currentRank, int _processWork, int _processHome,
-int _age, int _family,
+int _age, int _family, int _stratum,
 bool _atHome, Shift _workShift, int _wakeUpTime, int _returnToHomeTime, int _sleepStart, int _sleepEnd,
 DiseaseStage _diseaseStage, PatientType _patientType,
 double _incubationTime, double _incubationShift, double _ticksToInfected, bool _diseaseStageEnd, double _ticksToDiseaseEnd, int _infections,
 std::vector<double> _homeplace, std::vector<double> _workplace,
 double _xcoord, double _ycoord, double _averageWalk, std::string _homeZone, std::string _workZone):
 id(_id), rank(_rank), type(_type), currentRank(_currentRank), processWork(_processWork), processHome(_processHome),
-age(_age), family(_family), atHome(_atHome),
+age(_age), family(_family), stratum(_stratum), atHome(_atHome),
 workShift(_workShift), wakeUpTime(_wakeUpTime), returnToHomeTime(_returnToHomeTime),
 diseaseStage(_diseaseStage), patientType(_patientType), incubationTime(_incubationTime), incubationShift(_incubationShift), ticksToInfected(_ticksToInfected), diseaseStageEnd(_diseaseStageEnd), ticksToDiseaseEnd(_ticksToDiseaseEnd), infections(_infections),
 homeplace(_homeplace), workplace(_workplace), xcoord(_xcoord), ycoord(_ycoord), averageWalk(_averageWalk), homeZone(_homeZone), workZone(_workZone) { }

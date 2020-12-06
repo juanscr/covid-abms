@@ -112,6 +112,7 @@ void Reader::getAgents(std::string path, std::string filename, int rank, int* n,
         // Set personal attributes
         agent->setAge(data.get<int>(key + ".age"));
         agent->setFamily(data.get<int>(key + ".family"));
+        agent->setStratum(data.get<int>(key + ".stratum"));
 
         // Set disease stage
         d = data.get<int>(key + ".diseaseStage");

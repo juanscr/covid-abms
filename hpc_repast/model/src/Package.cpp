@@ -5,7 +5,7 @@ AgentPackageProvider::AgentPackageProvider(repast::SharedContext<RepastHPCAgent>
 void AgentPackageProvider::providePackage(RepastHPCAgent * agent, std::vector<AgentPackage>& out){
     repast::AgentId id = agent->getId();
     AgentPackage package(id.id(), id.startingRank(), id.agentType(), id.currentRank(), agent->getProcessWork(), agent->getProcessHome(),
-	agent->getAge(), agent->getFamily(),
+	agent->getAge(), agent->getFamily(), agent->getStratum(),
 	agent->getAtHome(), agent->getWorkShit(), agent->getWakeUpTime(), agent->getReturnToHomeTime(), agent->getSleepStart(), agent->getSleepEnd(),
 	agent->getDiseaseStage(), agent->getPatientType(), agent->getIncubationTime(), agent->getIncubatioShift(), agent->getTicksToInfected(), agent->getDiseaseStageEnd(), agent->getTicksToDiseaseEnd(), agent->getInfections(),
 	agent->getHomePlace(), agent->getWorkPlace(), agent->getXCoord(), agent->getYCoord(), agent->getAverageWalk(), agent->getHomeZone(), agent->getWorkZone());
@@ -30,6 +30,7 @@ RepastHPCAgent * AgentPackageReceiver::createAgent(AgentPackage package){
 	agent->setProcessHome(package.processHome);
 	agent->setAge(package.age);
 	agent->setFamily(package.family);
+	agent->setStratum(package.stratum);
 	agent->setDiseaseStage(package.diseaseStage);
 
 	// Locations
