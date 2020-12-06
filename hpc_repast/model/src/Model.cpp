@@ -203,7 +203,6 @@ void RepastHPCModel::step(){
 }
 
 void RepastHPCModel::agentsUpdate(std::vector<RepastHPCAgent*>& agents, int tick, int rank){
-	int core;
 	for(RepastHPCAgent* agent : agents){
 		// Update disease stage
 		if(agent->isActiveCase()){
@@ -337,6 +336,7 @@ void RepastHPCModel::agentsMove(std::vector<RepastHPCAgent*>& a, int tick, int r
 				if (rank != agent->getProcessHome()){
 					repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->getProcessHome());
 				}
+				agent->returnHome();
 			} else if (agent->cr != rank){
 				repast::RepastProcess::instance()->moveAgent(agent->getId(), agent->cr);
 			}
