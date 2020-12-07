@@ -50,6 +50,7 @@ class RepastHPCModel{
 	double workMove;
 	double rand_exposed;
 	double maskFactor;
+	bool trackCases;
 
 	// Boost geography
 	typedef boost::geometry::model::d2::point_xy<double> point;
@@ -69,6 +70,8 @@ class RepastHPCModel{
 	// CSV File with agent states
 	std::mutex logMutex;
 	std::string csvFile;
+	std::string csvTrack;
+	std::vector<std::string> tracker;
 	bool write;
 
 	// Policies
@@ -118,5 +121,7 @@ public:
 	void recordResults();
 	template <typename filename, typename T1, typename T2, typename T3, typename T4, typename T5>
 	bool writeCsvFile(filename &fileName, T1 column1, T2 column2, T3 column3, T4 column4, T5 column5);
+	void writeTrack(std::vector<RepastHPCAgent*> a);
+	void writeCSVTrack();
 };
 #endif

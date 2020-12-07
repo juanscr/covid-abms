@@ -18,3 +18,4 @@ write.states = 0
 isolation = 1
 work.move = 0.33
 mask.factor = 0.5
+track.cases = 1

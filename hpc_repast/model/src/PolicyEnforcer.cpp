@@ -45,7 +45,7 @@ bool PolicyEnforcer::isAllowedToGoOut(repast::Random* r, bool isolation, RepastH
     // Check if agent can move
     bool factor = (f <= cp.factor);
 
-    if(cp.p == NONE || !agent->getComplies()){
+    if(cp.p == NONE || (!agent->getComplies() && agent->getAge()>14)){
         allowed = true;
     }else{
         bool cr = (age >= cp.ageMin && age <= cp.ageMax);
