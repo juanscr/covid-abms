@@ -17,7 +17,7 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	stopAt = repast::strToInt(props->getProperty("stop.at"));
 
 	// Current rank
-	int crank = repast::RepastProcess::instance()->rank();
+	crank = repast::RepastProcess::instance()->rank();
 
     // Number of agents
 	countOfAgents = repast::strToInt(props->getProperty("count.of.agents"));
@@ -111,11 +111,8 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	};
 
 	// Save novelties of agents and disease stages in a CSV File
-	if(crank == 0 && trackCases){
-		if(!Reader::fileExists(csvTrack)){
-			tracker.push_back("Tick, ID, DiseaseStage, PatientType, InfectedBy, AtHome, FromFamily, UsedMask, Complied");
-			writeCSVTrack();
-		}
+	if(trackCases){
+		createTracker(crank);
 	}
 }
 
@@ -128,7 +125,6 @@ RepastHPCModel::~RepastHPCModel(){
 
 void RepastHPCModel::init(repast::ScheduleRunner& runner){
 	// Current rank
-	int crank = repast::RepastProcess::instance()->rank();
 	int countOfAgents;
 
 	// Read agents information
@@ -161,7 +157,6 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 
 void RepastHPCModel::step(){
 	// Update time paramaeters
-	int crank = repast::RepastProcess::instance()->rank();
 	int ctick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	day = (int) TickConverter::ticksToDays(ctick) % 7;
 	hour = ctick % 24;
@@ -427,6 +422,22 @@ void RepastHPCModel::writeCSVTrack(){
 	}else{
 		std::cerr << "Failed to write to file: " << csvTrack << "\n";
 	}
+}
+
+void RepastHPCModel::createTracker(int rank){
+	// Check if file exists
+	std::string filename = "./output/agent_tracker.csv";
+	int cont = 2;
+	while(true){
+		if(Reader::fileExists(filename)){
+			filename = "./output/agent_tracker_" + std::to_string(cont) + ".csv";
+		}else{
+			break;
+		}
+		cont += 1;
+	}
+	// Create new file
+	csvTrack = filename;
 }
 
 template <typename filename, typename T1, typename T2, typename T3, typename T4, typename T5>

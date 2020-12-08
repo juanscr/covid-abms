@@ -36,6 +36,7 @@ class RepastHPCModel{
 	int procsY;
 	int day;
 	int hour;
+	int crank;
 	//Sit zopne path
 	double originX;
 	double originY;
@@ -122,6 +123,7 @@ public:
 	template <typename filename, typename T1, typename T2, typename T3, typename T4, typename T5>
 	bool writeCsvFile(filename &fileName, T1 column1, T2 column2, T3 column3, T4 column4, T5 column5);
 	void writeTrack(std::vector<RepastHPCAgent*> a);
+	void createTracker(int rank);
 	void writeCSVTrack();
 };
 #endif

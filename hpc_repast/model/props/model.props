@@ -2,7 +2,7 @@
 stop.at = 2
 procs.x = 1
 procs.y = 12
-infection.radius = 1
+infection.radius = 1.5
 random.seed = 1
 buffer.size = 0
 count.of.agents = 100
@@ -16,6 +16,7 @@ policy.file = policy0.json
 policy.info = policyInfo.json
 write.states = 0
 isolation = 1
-work.move = 0.33
+work.move = 0.28
 mask.factor = 0.5
 track.cases = 1
+track.columns=Tick,ID,DiseaseStage,PatientType,InfectedBy,AtHome,FromFamily,UsedMask,Complied
