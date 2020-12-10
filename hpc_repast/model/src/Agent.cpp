@@ -144,7 +144,7 @@ void RepastHPCAgent::initDisease(repast::Random* r, std::default_random_engine* 
     switch (diseaseStage)
     {
     case EXPOSED:
-        setExposed(r);
+        setExposed(r, -1, -1);
         break;
     case INFECTED:
         setInfected(r, g);
@@ -279,7 +279,7 @@ bool RepastHPCAgent::isActiveCase(){
     return diseaseStage == INFECTED || diseaseStage == EXPOSED;
 }
 
-void RepastHPCAgent::setExposed(repast::Random* r){
+void RepastHPCAgent::setExposed(repast::Random* r, int id2, int family2){
     // Get day of infection
     currentTick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
@@ -293,6 +293,9 @@ void RepastHPCAgent::setExposed(repast::Random* r){
     // Get infectivity period
     double infectiousPeriod = max(incubationPeriod + (Probabilities::INFECTION_MIN), 1.0);
     ticksToInfected = currentTick + TickConverter::daysToTicks(infectiousPeriod);
+
+    // Update track
+    track = updateTrack("exposed", "nan", std::to_string(id2), std::to_string(family == family2));
 }
 
 void RepastHPCAgent::setInfected(repast::Random* r, std::default_random_engine* g){
@@ -316,9 +319,12 @@ void RepastHPCAgent::setInfected(repast::Random* r, std::default_random_engine* 
 
     double daysToEvent = Probabilities::getRandomTimeToDischarge(g, r) - Probabilities::INFECTION_MIN;
     ticksToDiseaseEnd = currentTick + TickConverter::daysToTicks(daysToEvent);
+
+    // Set status
+    track = updateTrack("infected", std::to_string(patientType), "nan", "nan");
 }
 
-void RepastHPCAgent::diseaseActions(repast::Random* r, double currentTick, std::default_random_engine* g){
+void RepastHPCAgent::diseaseActions(repast::Random* r, int currentTick, std::default_random_engine* g){
     if (diseaseStage == EXPOSED){
         if ( (currentTick-1) <= ticksToInfected && ticksToInfected <= currentTick ){
             setInfected(r, g);
@@ -334,12 +340,28 @@ void RepastHPCAgent::diseaseActions(repast::Random* r, double currentTick, std::
     }
 }
 
+std::string RepastHPCAgent::updateTrack(std::string s3, std::string s4, std::string s5, std::string s7){
+    // Current tick
+    std::string s = std::to_string(currentTick) + ",";
+    // ID
+    s = s + std::to_string(id_.id()) + ",";
+    // Disease Stage - PatientType - InfectedBy
+    s = s + s3 + "," + s4 + "," + s5 + ",";
+    // At Home - Family member
+    s = s + std::to_string(atHome) + "," + s7 + ",";
+    // Uses Mask
+    s = s + std::to_string(usesMask) + "," + std::to_string(complies);
+    return s;
+}
+
 void RepastHPCAgent::setImmune(){
     diseaseStage = IMMUNE;
+    track = updateTrack("recovered", "nan", "nan", "nan");
 }
 
 void RepastHPCAgent::setDead(){
     diseaseStage = DEAD;
+    track = updateTrack("dead", "nan", "nan", "nan");
 }
 
 void RepastHPCAgent::setInfections(int newInfections){

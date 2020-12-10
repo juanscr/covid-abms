@@ -31,9 +31,6 @@ private:
     int family;
     int stratum;
 
-    // Tick converter
-    double currentTick;
-
     // Boost geography
     typedef boost::geometry::model::d2::point_xy<double> point;
     typedef boost::geometry::model::polygon<point> polygon;
@@ -79,6 +76,12 @@ public:
 
     // Current core
     int cr;
+
+    // Current tick
+    int currentTick;
+
+    // Novelty in disease stage
+    std::string track = "";
 
     /* Initialization methods */
     void initAgent(repast::Random* r);
@@ -165,7 +168,7 @@ public:
     // Disease actions
     void initDisease(repast::Random* r, std::default_random_engine* g);
     void setInfected(repast::Random* r, std::default_random_engine* g);
-    void setExposed(repast::Random* r);
+    void setExposed(repast::Random* r, int id2, int family2);
 
     PatientType getPatientType(){return patientType;}
     void setPatientType(PatientType newPatientType);
@@ -211,7 +214,10 @@ public:
     bool isActiveCase();
 
     // Actions according to disease stage of agent
-    void diseaseActions(repast::Random* r, double currentTick, std::default_random_engine* g);
+    void diseaseActions(repast::Random* r, int currentTick, std::default_random_engine* g);
+
+    // Track message
+    std::string updateTrack(std::string s3, std::string s4, std::string s5, std::string s7);
 };
 
 /* Serializable Agent Package */

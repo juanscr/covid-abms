@@ -17,7 +17,7 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	stopAt = repast::strToInt(props->getProperty("stop.at"));
 
 	// Current rank
-	int crank = repast::RepastProcess::instance()->rank();
+	crank = repast::RepastProcess::instance()->rank();
 
     // Number of agents
 	countOfAgents = repast::strToInt(props->getProperty("count.of.agents"));
@@ -58,10 +58,13 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 	// Read mask factor
 	maskFactor = repast::strToDouble(props->getProperty("mask.factor"));
 
-	// Check if agents states must be recorded
-	write = props->getProperty("write.states") == "1";
+	// Read Track cases
+	trackCases = (props->getProperty("track.cases") == "1");
 
-	// Distributions
+	// Check if agents states must be recorded
+	write = (props->getProperty("write.states") == "1");
+
+	// Distributions and seed
 	initializeRandom(*props, comm);
 	r = repast::Random::instance();
 	g.seed(crank * 1000);
@@ -99,12 +102,18 @@ RepastHPCModel::RepastHPCModel(std::string propsFile, int argc, char** argv, boo
 
 	// Define csv file to export agent states
 	csvFile = "./output/agent_states.csv";
+	csvTrack = "./output/agent_tracker.csv";
 
-	// Uncomment to save agent states in a CSV File
-	if(repast::RepastProcess::instance()->rank() == 0 && write){
+	// Save agent states in a CSV File
+	if(crank == 0 && write){
 		if(!Reader::fileExists(csvFile))
         writeCsvFile(csvFile, "Tick", "ID", "X", "Y", "DiseaseStage");
 	};
+
+	// Save novelties of agents and disease stages in a CSV File
+	if(trackCases){
+		createTracker(crank);
+	}
 }
 
 RepastHPCModel::~RepastHPCModel(){
@@ -116,7 +125,6 @@ RepastHPCModel::~RepastHPCModel(){
 
 void RepastHPCModel::init(repast::ScheduleRunner& runner){
 	// Current rank
-	int crank = repast::RepastProcess::instance()->rank();
 	int countOfAgents;
 
 	// Read agents information
@@ -148,7 +156,7 @@ void RepastHPCModel::init(repast::ScheduleRunner& runner){
 }
 
 void RepastHPCModel::step(){
-	int crank = repast::RepastProcess::instance()->rank();
+	// Update time paramaeters
 	int ctick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	day = (int) TickConverter::ticksToDays(ctick) % 7;
 	hour = ctick % 24;
@@ -192,6 +200,11 @@ void RepastHPCModel::step(){
 	// Ask agents to wake up or return to home
 	agentsMove(agents, ctick, crank);
 
+	// Write changes in disease stages
+	if(trackCases){
+		writeTrack(agents);
+	}
+
 	// Update agents status
 	repast::RepastProcess::instance()->synchronizeAgentStatus<RepastHPCAgent, AgentPackage, AgentPackageProvider, AgentPackageReceiver>(context, *provider, *receiver, *receiver);
 	if(write && context.size() > 0){
@@ -204,6 +217,7 @@ void RepastHPCModel::step(){
 
 void RepastHPCModel::agentsUpdate(std::vector<RepastHPCAgent*>& agents, int tick, int rank){
 	for(RepastHPCAgent* agent : agents){
+		agent->currentTick = tick;
 		// Update disease stage
 		if(agent->isActiveCase()){
 			agent->diseaseActions(r, tick, &g);
@@ -266,7 +280,7 @@ void RepastHPCModel::agentsInfect(std::vector<RepastHPCAgent*>& S, std::vector<R
 						rand_exposed = rand();
 						if(Probabilities::isGettingExposed(rand_exposed, infected->getIncubatioShift(), infected->getUsesMask(), susceptible->getUsesMask(), maskFactor)){
 							infected->setInfections(1);
-							susceptible->setExposed(r);
+							susceptible->setExposed(r, infected->getId().id(), infected->getFamily());
 						}
 					}
 					if(cr && i < I.size()-1){
@@ -377,6 +391,55 @@ void RepastHPCModel::agentStates(std::vector<RepastHPCAgent*> a, int tick, bool 
 	}
 }
 
+double RepastHPCModel::rand(){
+	return r->nextDouble();
+}
+
+void RepastHPCModel::writeTrack(std::vector<RepastHPCAgent*> a){
+	tracker = {};
+	std::string track;
+
+	for(RepastHPCAgent* agent : a){
+		track = agent->track;
+		if(track !=  ""){
+			tracker.push_back(track);
+		}
+		agent->track = "";
+	}
+	writeCSVTrack();
+}
+
+void RepastHPCModel::writeCSVTrack(){
+	std::lock_guard<std::mutex> csvLock(logMutex);
+	std::fstream file;
+    file.open (csvTrack, std::ios::out | std::ios::app);
+	if(file){
+		for(std::string line : tracker){
+			file << line;
+			file << std::endl;
+		}
+		file.close();
+	}else{
+		std::cerr << "Failed to write to file: " << csvTrack << "\n";
+	}
+}
+
+void RepastHPCModel::createTracker(int rank){
+	// Check if file exists
+	std::string filename = "./output/agent_tracker.csv";
+	int cont = 2;
+	while(true){
+		if(Reader::fileExists(filename)){
+			filename = "./output/agent_tracker_" + std::to_string(cont) + ".csv";
+		}else{
+			break;
+		}
+		cont += 1;
+	}
+	// Create new file
+	csvTrack = filename;
+}
+
 template <typename filename, typename T1, typename T2, typename T3, typename T4, typename T5>
 bool RepastHPCModel::writeCsvFile(filename &fileName, T1 column1, T2 column2, T3 column3, T4 column4, T5 column5) {
     std::lock_guard<std::mutex> csvLock(logMutex);
@@ -394,8 +457,4 @@ bool RepastHPCModel::writeCsvFile(filename &fileName, T1 column1, T2 column2, T3
     } else {
         return false;
     }
-}
-
-double RepastHPCModel::rand(){
-	return r->nextDouble();
 }
