@@ -47,7 +47,9 @@ bool PolicyEnforcer::isAllowedToGoOut(repast::Random* r, bool isolation, RepastH
 
     if(cp.p == NONE || (!agent->getComplies() && agent->getAge()>14)){
         allowed = true;
-    }else{
+    }else if(cp.p = LOCKDOWN){
+        allowed = allowedHour;
+    } else{
         bool cr = (age >= cp.ageMin && age <= cp.ageMax);
 
         if(cp.p == FULL_QUARANTINE && !cr){
@@ -68,4 +70,27 @@ bool PolicyEnforcer::isAllowedToGoOut(repast::Random* r, bool isolation, RepastH
     }
 
     return (allowed && factor);
+}
+
+void PolicyEnforcer::hourInRange(int hour, int hourMin, int hourMax){
+    if(hourMin <= hourMax){
+        if(hour >= hourMin && hour <= hourMax){
+            allowedHour = false;
+        }
+    }else {
+        if(hour >= hourMin || hour <= hourMax){
+            allowedHour = false;
+        }
+    }
+    allowedHour = true;
+}
+
+void PolicyEnforcer::updatePolicy(int day, int hour){
+    // Get current policy
+    policy cp = currentPolicies.at(0);
+
+    // Update policies
+    if(cp.p == LOCKDOWN){
+        hourInRange(hour, cp.hourStart, cp.hourEnd);
+    }
 }

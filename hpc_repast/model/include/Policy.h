@@ -2,7 +2,7 @@
 #define POLICY
 
 enum Policy{
-    NONE, FULL_QUARANTINE, ID_BASED_CURFEW
+    NONE, FULL_QUARANTINE, ID_BASED_CURFEW, LOCKDOWN
 };
 
 // Struct for reading policies
@@ -12,6 +12,8 @@ struct policy{
     double end;
     int ageMin;
     int ageMax;
+    int hourStart;
+    int hourEnd;
     double factor;
     std::vector<std::vector<int>> curfew;
     bool mask;

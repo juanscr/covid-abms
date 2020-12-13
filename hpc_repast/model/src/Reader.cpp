@@ -223,6 +223,12 @@ void Reader::getPolicies(int crank, std::string path, std::string filename, int 
             }
         }
 
+        // Add hours of lockdown
+        if (d == 3){
+            pol.hourStart = data.get<int>(key + ".hourStart");
+            pol.hourStart = data.get<int>(key + ".hourEnd");
+        }
+
         // Factor of allowed agents that decide to move
         pol.factor = data.get<double>(key + ".factor");
 

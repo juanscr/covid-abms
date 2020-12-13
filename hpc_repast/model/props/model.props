@@ -19,4 +19,4 @@ isolation = 1
 work.move = 0.28
 mask.factor = 0.5
 track.cases = 1
-track.columns=Tick,ID,DiseaseStage,PatientType,InfectedBy,AtHome,FromFamily,UsedMask,Complied
+track.columns=Tick,ID,DiseaseStage,PatientType,InfectedBy,AtHome,FromFamily

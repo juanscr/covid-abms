@@ -348,9 +348,7 @@ std::string RepastHPCAgent::updateTrack(std::string s3, std::string s4, std::str
     // Disease Stage - PatientType - InfectedBy
     s = s + s3 + "," + s4 + "," + s5 + ",";
     // At Home - Family member
-    s = s + std::to_string(atHome) + "," + s7 + ",";
-    // Uses Mask
-    s = s + std::to_string(usesMask) + "," + std::to_string(complies);
+    s = s + std::to_string(atHome) + "," + s7;
     return s;
 }
 

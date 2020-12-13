@@ -1,10 +1,11 @@
 px=1
 py=12
 np=$(($px*$py))
-stopAt=720
-ap=../data/10k/12/agents/
-gp=../data/10k/12/geography/
+stopAt=5809
+ap=../data/1M/12/agents/
+gp=../data/1M/12/geography/
 pp=../data/policies/
-pf=policy0.json
-sd=546376
-mpirun -n $np ./bin/code_01.exe ./props/config.props ./props/model.props stop.at=$stopAt procs.x=$px procs.y=$py agents.path=$ap geography.path=$gp policy.file=$pf policy.path=$pp random.seed=$sd
+pf=policy1.json
+pi=policyInfo.json
+seed=257762
+mpirun -n $np ./bin/code_01.exe ./props/config.props ./props/model.props stop.at=$stopAt procs.x=$px procs.y=$py agents.path=$ap geography.path=$gp policy.file=$pf policy.info=$pi policy.path=$pp random.seed=$seed

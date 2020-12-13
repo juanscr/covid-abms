@@ -38,5 +38,12 @@ class PolicyEnforcer{
 
         // Mask usage by socioeconomic stratum
         maskUsage msu;
+
+        // Check policy hour
+        bool allowedHour;
+        void hourInRange(int hour, int hourMin, int hourMax);
+
+        // Update policy
+        void updatePolicy(int day, int hour);
 };
 #endif

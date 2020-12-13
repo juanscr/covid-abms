@@ -179,6 +179,9 @@ void RepastHPCModel::step(){
 		RepastHPCModel::agentStates(agents, 0, write);
 	}
 
+	// Update policy
+	policyEnforcer.updatePolicy(day, hour);
+
 	// Update disease stage and position
 	agentsUpdate(agents, ctick, crank);
 
